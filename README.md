@@ -67,6 +67,7 @@ programs to be configured for I/O as needed by end users.
 
 Additional functionality:
 
+- better error handling of non-zero return codes
 - `obj dir az://container --format csv`
 - `obj del gs://container/blob`
 - possibly port to Go 
