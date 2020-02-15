@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import sys
 import objio
 import typer
 
@@ -6,13 +7,28 @@ app = typer.Typer()
 
 @app.command()
 def cat(url, timeout:float=3600):
-    pipe = objio.gopen(url, mode="r", direct=True)
-    print(pipe)
-    pipe.wait(timeout)
+    pipe = objio.objopen(url, mode="read", stream=sys.stdout)
+    if pipe: pipe.wait(timeout)
 
 @app.command()
 def put(url, timeout:float=3600):
-    raise Exception("unimplemented")
+    pipe = objio.objopen(url, mode="write", stream=sys.stdin)
+    if pipe: pipe.wait(timeout)
+
+@app.command()
+def list(url, timeout:float=3600):
+    pipe = objio.objopen(url, mode="list", stream=sys.stdout)
+    if pipe: pipe.wait(timeout)
+
+@app.command()
+def auth(url, timeout:float=3600):
+    pipe = objio.objopen(url, mode="auth", stream=sys.stdout)
+    if pipe: pipe.wait(timeout)
+
+@app.command()
+def buckets(url, timeout:float=3600):
+    pipe = objio.objopen(url, mode="buckets", stream=sys.stdout)
+    if pipe: pipe.wait(timeout)
 
 if __name__ == "__main__":
     app()

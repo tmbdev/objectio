@@ -17,31 +17,58 @@ import yaml
 import io
 from urllib.parse import urlparse
 
-bufsize = 8192
-
 env_prefix = "OBJIO_"
 
 default = """
+config:
+
+  bufsize: 8192
+
 schemes:
+
   file:
     read:
-        cmd: ["dd", "if={path}", "bs=4M"]
+      cmd: ["dd", "if={path}", "bs=4M"]
     write:
-        cmd: ["dd", "if=-", "of={path}", "bs=4M"]
+      cmd: ["dd", "if=-", "of={path}", "bs=4M"]
+    list:
+      cmd: "ls -1d {abspath}/*"
+    buckets:
+      cmd: "mount | awk '/^\\\\/dev\\\\/sd/{print $3}'"
+      substitute: false
+    auth: 
+      message: |
+        No authentication for local files.
+        
   gs:
     read:
         cmd: ["gsutil", "cat", "{url}"]
+        _cmd: ["curl", "--fail", "-L", "-s", "https://{bucket}.storage.googleapis.com{path}", "--output", "-"]
     write:
-        cmd: ["gsutil", "cp", "{url}"]
+        cmd: ["gsutil", "cp", "-", "{url}"]
+    buckets:
+        cmd: ["gsutil", "ls"]
+    list:
+        cmd: ["gsutil", "ls", "{url}"]
+    auth: 
+      message: |
+        Use "gcloud auth login" to authenticate.
+
   http:
     read:
         cmd: ["curl", "--fail", "-L", "-s", "{url}", "--output", "-"]
+
   https:
     read:
         cmd: ["curl", "--fail", "-L", "-s", "{url}", "--output", "-"]
+
   az:
     read:
         cmd: "az storage blob download --container-name '{bucket}' --name '{nobucket}' --file -"
+    buckets:
+        cmd: "az storage container list"
+    list:
+        cmd: "az storage blob list --container-name '{bucket}'"
 """
 
 with io.StringIO(default) as stream:
@@ -61,10 +88,6 @@ env_vars = [
     (env_prefix+"LOCAL", "./objio.yml")
 ]
 
-top_level = set("commands".split())
-scheme_level = set("read write list delete stat".split())
-handler_level = set("cmd class errors".split())
-
 for var, default in env_vars:
     path = os.environ.get(var, default)
     if path is not None and os.path.exists(path):
@@ -75,66 +98,42 @@ for var, default in env_vars:
 if int(os.environ.get("gopen_debug", 0)):
     yaml.dump(config, sys.stderr)
 
-class GopenException(Exception):
+class ObjioExeption(Exception):
     def __init__(self, info):
         super().__init__()
         self.info = info
 
 class Pipe(object):
-    def __init__(self, *args, mode="r", raise_errors=True, direct=False, **kw):
+    def __init__(self, cmd, writable, raise_errors=True, stream=None, bufsize=8192, **kw):
+        assert isinstance(cmd, list)
+        self.args = (cmd, writable)
         self.raise_errors = raise_errors
-        self.direct = direct
-        self.mode = mode
-        self.open(*args, **kw)
-    def open(self, *args, **kw):
-        mode = self.mode
-        if self.direct:
-            if mode[0] == "w":
-                if "b" in mode:
-                    stdin = sys.stdin.buffer
-                else:
-                    stdin = sys.stdin
-                stdout = None
-            if mode[0] == "r":
-                if "b" in mode:
-                    stdout = sys.stdout.buffer
-                else:
-                    stdout = sys.stdout
-                stdin = None
+        stdin = stdout = None
+        if writable:
+            stdin = stream or subprocess.PIPE
         else:
-            if mode[0] == "r":
-                stdin = subprocess.PIPE
-                stdout = None
-            elif mode[0] == "w":
-                stdout = subprocess.PIPE
-                stdin = None
-        self.proc = subprocess.Popen(*args, bufsize=bufsize, stdin=stdin, stdout=stdout, **kw)
-        self.args = (args, kw)
-        if mode == "w":
-            self.stream = self.proc.stdin
-        elif "r" in mode:
-            self.stream = self.proc.stdout
-        if not self.direct and self.stream is None:
-            print(self.direct)
-            raise GopenException(f"{self.args}: no stream (open)")
-        else:
-            self.stream = None
+            stdout = stream or subprocess.PIPE
+        self.proc = subprocess.Popen(cmd, bufsize=bufsize, stdin=stdin, stdout=stdout, **kw)
+        self.stream = None
+        if not stream:
+            self.stream = self.proc.stdout if not writable else self.proc.stdin
+            if self.stream is None:
+                raise ObjioExeption(f"{cmd}: no stream (open)")
         self.status = None
-        return self
     def write(self, *args, **kw):
         result = self.stream.write(*args, **kw)
         self.status = self.proc.poll()
         if self.status is not None:
             self.status = self.proc.wait()
             if self.status != 0 and self.raise_errors:
-                raise GopenException(f"{self.args}: exit {self.status} (write)")
+                raise ObjioExeption(f"{self.args}: exit {self.status} (write)")
     def read(self, *args, **kw):
         result = self.stream.read(*args, **kw)
         self.status = self.proc.poll()
         if self.status is not None:
             self.status = self.proc.wait()
             if self.status != 0 and self.raise_errors:
-                raise GopenException(f"{self.args}: exit {self.status} (read)")
+                raise ObjioExeption(f"{self.args}: exit {self.status} (read)")
         return result
     def readLine(self, *args, **kw):
         result = self.stream.readLine(*args, **kw)
@@ -142,7 +141,7 @@ class Pipe(object):
         if self.status is not None:
             self.status = self.proc.wait()
             if self.status != 0 and self.raise_errors:
-                raise GopenException(f"{self.args}: exit {self.status} (readLine)")
+                raise ObjioExeption(f"{self.args}: exit {self.status} (readLine)")
     def wait(self, timeout=3600.0):
         self.proc.wait(timeout)
     def close(self, timeout=3600.0):
@@ -157,7 +156,7 @@ class Pipe(object):
             self.status = self.proc.wait(1.0)
         if self.raise_errors == "all":
             if self.status != 0 and self.raise_errors:
-                raise GopenException(f"{self.args}: exit {self.status} (close)")
+                raise ObjioExeption(f"{self.args}: exit {self.status} (close)")
     def __enter__(self):
         return self
     def __exit__(self, type, value, traceback):
@@ -169,8 +168,22 @@ def maybe(f, default):
     except:
         return default
 
-def shell_handler(url, pr, mode, raise_errors=True, direct=False):
-    kw = dict(
+def get_handler_for(url, mode):
+    assert mode in "read write delete list auth buckets".split(), f"{mode} not one of the accepted modes"
+    pr = urlparse(url)
+    schemes = config.get("schemes")
+    scheme = schemes.get(pr.scheme)
+    if scheme is None:
+        raise ValueError(f"objio: {url}: no handler found for {pr.scheme}"+
+                         " (known: " + " ".join(schemes.keys())+")")
+    handler = scheme.get(mode)
+    if handler is None:
+        raise ValueError(f"objio: {url}: no handler found for {pr.scheme}, mode {mode}"+
+                         yaml.dump(handler))
+    return handler
+
+def url_variables(url, pr):
+    result = dict(
         url=url,
         scheme=pr.scheme,
         netloc=pr.netloc,
@@ -187,47 +200,59 @@ def shell_handler(url, pr, mode, raise_errors=True, direct=False):
         filename=os.path.basename(pr.path),
         port=pr.port
     )
-    schemes = config.get("schemes")
-    scheme = schemes.get(pr.scheme)
-    if scheme is None:
-        raise ValueError(f"objio: {url}: no handler found for {pr.scheme}"+
-                         " (known: " + " ".join(schemes.keys())+")")
-    if mode[0]=="r":
-        handler = scheme.get("read")
-    elif mode[0]=="w":
-        handler = scheme.get("write")
-    if scheme is None:
-        raise ValueError(f"objio: {url}: no handler found for {pr.scheme}, mode {mode}"+
-                         yaml.dump(handler))
-    cmd = handler.get("cmd")
-    if cmd is None:
+    if pr.scheme=="file":
+        result["abspath"] = os.path.abspath(pr.path)
+    return result
+
+def substitute_variables(cmd, variables):
+    if isinstance(cmd, list):
+        return [s.format(**variables) for s in cmd]
+    elif isinstance(cmd, str):
+        return cmd.format(**variables)
+    else:
+        raise ValueError(f"cmd: {cmd}: wrong type")
+
+def writable(mode):
+    return mode == "read"
+
+def cmd_handler(url, mode, raise_errors=True, stream=None):
+    handler = get_handler_for(url, mode)
+    if handler is None:
         raise ValueError(f"objio: {url}: no command specified for {pr.scheme}, mode {mode}\n"+
                          yaml.dump(handler))
+    message = handler.get("message")
+    if message is not None:
+        print(f"{mode} for {url}:\n")
+        print(message, file=sys.stderr)
+        return
+    cmd = handler.get("cmd")
+    if cmd is None:
+        raise ValueError("{url}: config neither specifies message: nor cmd:")
+    pr = urlparse(url)
     if handler.get("substitute", True):
-        if isinstance(cmd, list):
-            cmd = [s.format(**kw) for s in cmd]
-        elif isinstance(cmd, str):
-            cmd = cmd.format(**kw)
-        else:
-            raise ValueError(f"cmd: {cmd}: wrong type")
+        cmd = substitute_variables(cmd, url_variables(url, pr))
     if int(os.environ.get(env_prefix+"gopen_debug", "0")):
         print("#", cmd, file=sys.stderr)
     if isinstance(cmd, str):
-        return Pipe(cmd, shell=True, mode=mode, direct=direct)
-    elif isinstance(cmd, list):
-        return Pipe(cmd, mode=mode, raise_errors=True, direct=direct)
+        cmd = ["/bin/bash", "-c", cmd]
+    assert isinstance(cmd, (list, tuple))
+    return Pipe(cmd, writable(mode), raise_errors=True, stream=stream)
 
-def gopen(url, mode="rb", direct=False):
-    if url == "-":
-        if "w" in mode:
-            stream = sys.stdout
-        else:
-            stream = sys.stdin
-        if "b" in mode:
-            stream = stream.buffer
-        return stream
+def objopen(url, mode="read", stream=None):
+    pr = urlparse(url)
+    if pr.scheme == "":
+        url = "file:"+url
+    return cmd_handler(url, mode, stream=stream)
+
+def gopen(url, filemode="rb"):
+    if allow_files:
+        if url == "-":
+            stream = {"r": sys.stdout, "w": sys.stdin}[filemode[0]]
+            if "b" in mode:
+                stream = stream.buffer
+            return stream
     pr = urlparse(url)
     if pr.scheme=="":
-        return open(url, mode)
-    else:
-        return shell_handler(url, pr, mode, direct=direct)
+        return open(url, filemode)
+    mode = {"r": "read", "w": "write"}[filemode[0]]
+    return cmd_handler(url, mode, stream=stream)

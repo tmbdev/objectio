@@ -4,4 +4,4 @@
 # See the LICENSE file for licensing terms (BSD-style).
 #
 
-from .gopen import env_prefix, config, gopen
+from .gopen import env_prefix, config, objopen, gopen, cmd_handler
