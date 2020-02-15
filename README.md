@@ -30,7 +30,8 @@ existing command line programs. You can configure how command line programs
 are invoked with a YAML configuration file. Configurations are a combination
 of the built-in defaults with global and directory-local overrides.
 
-- global: ~/.objio.yaml (override with `OBJIO_GLOBAL=` environment variable)
+- system: /usr/local/etc/objio.yaml (override with`OBJIO_SYSTEM=` environment variable)
+- user: ~/.objio.yaml (override with `OBJIO_USER=` environment variable)
 - local: ./objio.yaml (override with `OBJIO_LOCAL=` environment variable)
 
 The configuration file contains command specifications, either as strings

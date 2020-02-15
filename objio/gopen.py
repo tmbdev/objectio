@@ -85,7 +85,7 @@ def update_yaml_with(target, source):
     return target
 
 env_vars = [
-    (env_prefix+"SYSTEM", "/usr/local/objio.yaml"),
+    (env_prefix+"SYSTEM", "/usr/local/etc/objio.yaml"),
     (env_prefix+"USER", os.path.expanduser("~/.objio.yml")),
     (env_prefix+"LOCAL", "./objio.yml")
 ]
