@@ -75,6 +75,7 @@ with io.StringIO(default) as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)
 
 def update_yaml_with(target, source):
+    """Merge the source YAML tree into the target. Useful for merging config files."""
     if isinstance(target, dict) and isinstance(source, dict):
         for k, v in source.items():
             if k not in target:
@@ -84,9 +85,12 @@ def update_yaml_with(target, source):
     return target
 
 env_vars = [
-    (env_prefix+"GLOBAL", os.path.expanduser("~/.objio.yml")),
+    (env_prefix+"SYSTEM", "/usr/local/objio.yaml"),
+    (env_prefix+"USER", os.path.expanduser("~/.objio.yml")),
     (env_prefix+"LOCAL", "./objio.yml")
 ]
+
+# load YAML config files
 
 for var, default in env_vars:
     path = os.environ.get(var, default)
@@ -99,11 +103,13 @@ if int(os.environ.get("gopen_debug", 0)):
     yaml.dump(config, sys.stderr)
 
 class ObjioExeption(Exception):
+    """I/O Exceptions during objio operations."""
     def __init__(self, info):
         super().__init__()
         self.info = info
 
 class Pipe(object):
+    """A wrapper for the pipe class that adapts it to the needs of objio."""
     def __init__(self, cmd, writable, raise_errors=True, stream=None, bufsize=8192, **kw):
         assert isinstance(cmd, list)
         self.args = (cmd, writable)
@@ -163,26 +169,29 @@ class Pipe(object):
         self.close()
 
 def maybe(f, default):
+    """Evaluate f and return the value; return default on error."""
     try:
         return f()
     except:
         return default
 
-def get_handler_for(url, mode):
-    assert mode in "read write delete list auth buckets".split(), f"{mode} not one of the accepted modes"
+def get_handler_for(url, verb):
+    """Look for a handler for the url/verb combination in the config file."""
+    assert verb in "read write delete list auth buckets".split(), f"{verb} not one of the accepted modes"
     pr = urlparse(url)
     schemes = config.get("schemes")
     scheme = schemes.get(pr.scheme)
     if scheme is None:
         raise ValueError(f"objio: {url}: no handler found for {pr.scheme}"+
                          " (known: " + " ".join(schemes.keys())+")")
-    handler = scheme.get(mode)
+    handler = scheme.get(verb)
     if handler is None:
-        raise ValueError(f"objio: {url}: no handler found for {pr.scheme}, mode {mode}"+
+        raise ValueError(f"objio: {url}: no handler found for {pr.scheme}, verb {verb}"+
                          yaml.dump(handler))
     return handler
 
 def url_variables(url, pr):
+    """Generate a dictionary exposing the URL components. Names follow urlparse."""
     result = dict(
         url=url,
         scheme=pr.scheme,
@@ -205,6 +214,7 @@ def url_variables(url, pr):
     return result
 
 def substitute_variables(cmd, variables):
+    """Given a cmd specified either as a string or as a list, substitute the variables."""
     if isinstance(cmd, list):
         return [s.format(**variables) for s in cmd]
     elif isinstance(cmd, str):
@@ -212,17 +222,19 @@ def substitute_variables(cmd, variables):
     else:
         raise ValueError(f"cmd: {cmd}: wrong type")
 
-def writable(mode):
-    return mode == "read"
+def writable(verb):
+    """Does the given verb require a writable file descriptor?"""
+    return verb == "read"
 
-def cmd_handler(url, mode, raise_errors=True, stream=None):
-    handler = get_handler_for(url, mode)
+def cmd_handler(url, verb, raise_errors=True, stream=None):
+    """Given a url and verb, handle the command."""
+    handler = get_handler_for(url, verb)
     if handler is None:
-        raise ValueError(f"objio: {url}: no command specified for {pr.scheme}, mode {mode}\n"+
+        raise ValueError(f"objio: {url}: no command specified for {pr.scheme}, verb {verb}\n"+
                          yaml.dump(handler))
     message = handler.get("message")
     if message is not None:
-        print(f"{mode} for {url}:\n")
+        print(f"{verb} for {url}:\n")
         print(message, file=sys.stderr)
         return
     cmd = handler.get("cmd")
@@ -236,23 +248,27 @@ def cmd_handler(url, mode, raise_errors=True, stream=None):
     if isinstance(cmd, str):
         cmd = ["/bin/bash", "-c", cmd]
     assert isinstance(cmd, (list, tuple))
-    return Pipe(cmd, writable(mode), raise_errors=True, stream=stream)
+    return Pipe(cmd, writable(verb), raise_errors=True, stream=stream)
 
-def objopen(url, mode="read", stream=None):
+def objopen(url, verb="read", stream=None):
+    """Open a storage object. This always spawns a subprocess and supports all verbs."""
     pr = urlparse(url)
     if pr.scheme == "":
         url = "file:"+url
-    return cmd_handler(url, mode, stream=stream)
+    return cmd_handler(url, verb, stream=stream)
 
 def gopen(url, filemode="rb"):
+    """Open a storage object. This shortcuts to open() for local files and accepts file open modes."""
     if allow_files:
         if url == "-":
             stream = {"r": sys.stdout, "w": sys.stdin}[filemode[0]]
-            if "b" in mode:
+            if "b" in filemode:
                 stream = stream.buffer
             return stream
     pr = urlparse(url)
     if pr.scheme=="":
         return open(url, filemode)
-    mode = {"r": "read", "w": "write"}[filemode[0]]
-    return cmd_handler(url, mode, stream=stream)
+    elif pr.scheme=="file":
+        return open(pr.path, filemode)
+    verb = {"r": "read", "w": "write"}[filemode[0]]
+    return cmd_handler(url, verb, stream=stream)

@@ -7,27 +7,32 @@ app = typer.Typer()
 
 @app.command()
 def cat(url, timeout:float=3600):
-    pipe = objio.objopen(url, mode="read", stream=sys.stdout)
+    """Cat the given object to stdout."""
+    pipe = objio.objopen(url, verb="read", stream=sys.stdout.buffer)
     if pipe: pipe.wait(timeout)
 
 @app.command()
 def put(url, timeout:float=3600):
-    pipe = objio.objopen(url, mode="write", stream=sys.stdin)
+    """Upload stdin to the given location."""
+    pipe = objio.objopen(url, verb="write", stream=sys.stdin.buffer)
     if pipe: pipe.wait(timeout)
 
 @app.command()
 def list(url, timeout:float=3600):
-    pipe = objio.objopen(url, mode="list", stream=sys.stdout)
+    """List the objects in the given bucket or at the given path."""
+    pipe = objio.objopen(url, verb="list", stream=sys.stdout)
     if pipe: pipe.wait(timeout)
 
 @app.command()
 def auth(url, timeout:float=3600):
-    pipe = objio.objopen(url, mode="auth", stream=sys.stdout)
+    """Authenticate to the server for the URL."""
+    pipe = objio.objopen(url, verb="auth", stream=sys.stdout)
     if pipe: pipe.wait(timeout)
 
 @app.command()
 def buckets(url, timeout:float=3600):
-    pipe = objio.objopen(url, mode="buckets", stream=sys.stdout)
+    """List all available buckets for the currently authenticated user."""
+    pipe = objio.objopen(url, verb="buckets", stream=sys.stdout)
     if pipe: pipe.wait(timeout)
 
 if __name__ == "__main__":
