@@ -43,7 +43,7 @@ schemes:
   gs:
     read:
         cmd: ["gsutil", "cat", "{url}"]
-        _cmd: ["curl", "--fail", "-L", "-s", "https://{bucket}.storage.googleapis.com{path}", "--output", "-"]
+        _cmd: ["curl", "--fail", "-L", "-s", "https://{netloc}.storage.googleapis.com{path}", "--output", "-"]
     write:
         cmd: ["gsutil", "cp", "-", "{url}"]
     buckets:
@@ -64,11 +64,11 @@ schemes:
 
   az:
     read:
-        cmd: "az storage blob download --container-name '{bucket}' --name '{nobucket}' --file -"
+        cmd: "az storage blob download --container-name '{netloc}' --name '{path}' --file -"
     buckets:
         cmd: "az storage container list"
     list:
-        cmd: "az storage blob list --container-name '{bucket}'"
+        cmd: "az storage blob list --container-name '{netloc}'"
 """
 
 with io.StringIO(default) as stream:
@@ -203,8 +203,8 @@ def url_variables(url, pr):
         username=pr.username,
         password=pr.password,
         hostname=pr.hostname,
-        bucket=maybe(lambda:pr.path.split("/")[1], ""),
-        nobucket=maybe(lambda:pr.path.split("/")[2:], ""),
+        firstdir=maybe(lambda:pr.path.split("/")[1], ""),
+        restdirs=maybe(lambda:"/".join(pr.path.split("/")[2:]), ""),
         dirname=os.path.dirname(pr.path),
         filename=os.path.basename(pr.path),
         port=pr.port

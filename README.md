@@ -58,10 +58,15 @@ After putting these definitions into `./objio.yaml`, you can say:
 The following variables are available for substitution inside `{...}`:
 
 - url, scheme, netloc, path, params, query, fragment, username, password, hostname, port: same meaning as in `urllib.parse`
-- bucket: first element of path
-- nobucket: everything but first element of path
+- firstdir: first element of path
+- restdirs: everything but first element of path
 - dirname: everything but last element of path
 - filename: last element of path
+
+Note that Google and S3 put the actual bucket name into the
+`netloc` variable; that is, their syntax is `gs://bucket/object`, not
+`gs:/bucket/object`, which might be more logical. The above variables
+refer to the pathname components, not the netloc.
 
 # Future Extensions
 
