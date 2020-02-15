@@ -1,0 +1,18 @@
+#!/usr/bin/python3
+import objio
+import typer
+
+app = typer.Typer()
+
+@app.command()
+def cat(url, timeout:float=3600):
+    pipe = objio.gopen(url, mode="r", direct=True)
+    print(pipe)
+    pipe.wait(timeout)
+
+@app.command()
+def put(url, timeout:float=3600):
+    raise Exception("unimplemented")
+
+if __name__ == "__main__":
+    app()
