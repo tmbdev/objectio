@@ -65,8 +65,7 @@ The following variables are available for substitution inside `{...}`:
 
 Note that Google and S3 put the actual bucket name into the
 `netloc` variable; that is, their syntax is `gs://bucket/object`, not
-`gs:/bucket/object`, which might be more logical. The above variables
-refer to the pathname components, not the netloc.
+`gs:/bucket/object`, which might be more logical.
 
 # Future Extensions
 
