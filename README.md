@@ -57,9 +57,11 @@ After putting these definitions into `./objio.yaml`, you can say:
 
 The following variables are available for substitution inside `{...}`:
 
-        url scheme netloc path params query
-        fragment username password hostname
-        bucket nobucket dirname filename port
+- url, scheme, netloc, path, params, query, fragment, username, password, hostname, port: same meaning as in `urllib.parse`
+- bucket: first element of path
+- nobucket: everything but first element of path
+- dirname: everything but last element of path
+- filename: last element of path
 
 # Future Extensions
 
