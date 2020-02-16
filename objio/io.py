@@ -11,7 +11,7 @@ This defines two functions (`gopen`, `objopen`) that can access a
 large variety of object stores using a uniform interface.
 """
 
-__all__ = "objopen gopen cmd_handler config".split()
+__all__ = "objopen gopen config".split()
 
 import os
 import sys
@@ -241,7 +241,7 @@ def writable(verb):
     return verb == "write"
 
 def cmd_handler(url, verb, raise_errors=True, stream=None, verbose=False):
-    """Given a url and verb, handle the command."""
+    """Given a url and verb, find the command handler."""
     handler = get_handler_for(url, verb)
     if handler is None:
         raise ValueError(f"objio: {url}: no command specified for {pr.scheme}, verb {verb}\n"+
