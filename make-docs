@@ -1,0 +1,31 @@
+#!/bin/bash
+# Uses:
+# - jupyter nbconvert
+# - pydoc-markdown
+# - mkdocs
+
+cp README.md docs/index.md
+
+for nb in notebooks/*.ipynb; do
+    base=$(basename $nb .ipynb)
+    jupyter nbconvert --to markdown $nb && mv notebooks/$base.md docs/$base.md
+done
+
+pydocmd simple objio.io+ > docs/objio.md
+
+(
+echo '# obj (command)'
+echo '```generic'
+obj --help
+echo '```'
+echo
+
+obj --help | sed '1,/^Commands:/d' | awk '{print $1}' |
+while read cmd; do
+    echo "# obj $cmd (sub-command)"
+    echo '```generic'
+    obj $cmd --help
+    echo '```'
+    echo
+done
+) > docs/objcommand.md

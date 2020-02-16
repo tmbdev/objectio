@@ -20,7 +20,7 @@ store facilities, both from the command line and from within Python.
 ```Python
     import objio
 
-    stream = objio.open("gs://bucket/blob", "rb")
+    stream = objio.gopen("gs://bucket/blob", "rb")
 ```
 
 # Configuration

@@ -5,6 +5,14 @@
 # See the LICENSE file for licensing terms (BSD-style).
 #
 
+"""Object Store I/O Functions.
+
+This defines two functions (`gopen`, `objopen`) that can access a 
+large variety of object stores using a uniform interface.
+"""
+
+__all__ = "objopen gopen cmd_handler config".split()
+
 import os
 import sys
 import argparse
