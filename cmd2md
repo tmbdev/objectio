@@ -1,0 +1,17 @@
+#!/bin/bash
+
+for command in "$@"; do
+    echo
+    echo "# $command (command)"
+    echo
+    $command --help | sed '1,/^Commands:/d' | awk '{print $1}' |
+    while read subcommand; do
+        echo
+        echo "## $command $subcommand (subcommand)"
+        echo
+        echo '```generic'
+        obj $subcommand --help
+        echo '```'
+        echo
+    done
+done

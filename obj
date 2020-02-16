@@ -9,36 +9,63 @@ app = typer.Typer()
 
 @app.command()
 def cat(url, timeout:float=3600):
-    """Cat the given object to stdout."""
+    """Cat the given object to stdout.
+
+    The object is opened using the configured cloud command
+    and the output is piped directly to standard out.
+    """
     pipe = objio.objopen(url, verb="read", stream=sys.stdout.buffer)
     if pipe: pipe.wait(timeout)
 
 @app.command()
 def put(url, timeout:float=3600):
-    """Upload stdin to the given location."""
+    """Upload stdin to the given location.
+
+    The input is uploaded to the server at the given location.
+    Most (but not all) object stores will only update the store
+    after a successful update.
+    """
     pipe = objio.objopen(url, verb="write", stream=sys.stdin.buffer)
     if pipe: pipe.wait(timeout)
 
 @app.command()
 def list(url, timeout:float=3600):
-    """List the objects in the given bucket or at the given path."""
+    """List the objects in the given bucket or at the given path.
+
+    The output is a list of absolute urls that are usable
+    with `cat.
+    """
     pipe = objio.objopen(url, verb="list", stream=sys.stdout)
     if pipe: pipe.wait(timeout)
 
 @app.command()
 def auth(url, timeout:float=3600):
-    """Authenticate to the server for the URL."""
+    """Authenticate to the server for the URL.
+
+    This either runs an interactive command to permit the user
+    to authenticate, or prints an explanation of how to authenticate.
+    """
     pipe = objio.objopen(url, verb="auth", stream=sys.stdout)
     if pipe: pipe.wait(timeout)
 
 @app.command()
 def buckets(url, timeout:float=3600):
-    """List all available buckets for the currently authenticated user."""
+    """List all available buckets for the currently authenticated user.
+
+    Provides a list of toplevel buckets. On file systems, provides a list
+    of volumes.
+    """
     pipe = objio.objopen(url, verb="buckets", stream=sys.stdout)
     if pipe: pipe.wait(timeout)
 
 @app.command()
 def handler(url:str, verb:str="read"):
+    """Output the handlers for a given URL and verb.
+
+    Looks in the configuration file for a handler for the combination
+    of the URL and verb and outputs it in YAML format. This is
+    mainly intended for debugging configuration file issues.
+    """
     handler = objio.io.get_handler_for(url, verb)
     yaml.dump(handler, sys.stdout, default_flow_style=None)
 

@@ -2,6 +2,6 @@ site_name: objio
 nav:
     - Home: index.md
     - Examples: examples.md
-    - "objio (module)": objio.md
-    - "obj (command)": objcommand.md
+    - objio: objio.md
+    - obj: objcommand.md
 theme: readthedocs
