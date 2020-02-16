@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 import sys
 import objio
+import objio.io
 import typer
+import yaml
 
 app = typer.Typer()
 
@@ -34,6 +36,11 @@ def buckets(url, timeout:float=3600):
     """List all available buckets for the currently authenticated user."""
     pipe = objio.objopen(url, verb="buckets", stream=sys.stdout)
     if pipe: pipe.wait(timeout)
+
+@app.command()
+def handler(url:str, verb:str="read"):
+    handler = objio.io.get_handler_for(url, verb)
+    yaml.dump(handler, sys.stdout, default_flow_style=None)
 
 if __name__ == "__main__":
     app()

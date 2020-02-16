@@ -18,6 +18,9 @@ import io
 from urllib.parse import urlparse
 
 env_prefix = "OBJIO_"
+objio_debug = int(os.environ.get(env_prefix+"DEBUG", "0"))
+if objio_debug:
+    print("objio DEBUG mode", file=sys.stderr)
 
 # FIXME: move defaults into a separate, installable file
 
@@ -45,7 +48,6 @@ schemes:
   gs:
     read:
         cmd: ["gsutil", "cat", "{url}"]
-        _cmd: ["curl", "--fail", "-L", "-s", "https://{netloc}.storage.googleapis.com{path}", "--output", "-"]
     write:
         cmd: ["gsutil", "cp", "-", "{url}"]
     buckets:
@@ -83,8 +85,8 @@ def update_yaml_with(target, source):
             if k not in target:
                 target[k] = v
             else:
-                target[k] = merge(target[k], v)
-    return target
+                target[k] = update_yaml_with(target[k], v)
+    return source
 
 env_vars = [
     (env_prefix+"SYSTEM", "/usr/local/etc/objio.yaml"),
@@ -97,11 +99,13 @@ env_vars = [
 for var, default in env_vars:
     path = os.environ.get(var, default)
     if path is not None and os.path.exists(path):
+        if objio_debug:
+            print(f"objio updating config with {path}", file=sys.stderr)
         with open(path) as stream:
-            updates = yaml.load(path, Loader=yaml.FullLoader)
-            update_yaml_with(config, updates)
+            updates = yaml.load(stream, Loader=yaml.FullLoader)
+            config = update_yaml_with(config, updates)
 
-if int(os.environ.get("gopen_debug", 0)):
+if objio_debug:
     yaml.dump(config, sys.stderr)
 
 class ObjioExeption(Exception):
@@ -245,7 +249,7 @@ def cmd_handler(url, verb, raise_errors=True, stream=None, verbose=False):
     pr = urlparse(url)
     if handler.get("substitute", True):
         cmd = substitute_variables(cmd, url_variables(url, pr))
-    if int(os.environ.get(env_prefix+"objio_debug", "0")) or verbose:
+    if objio_debug or verbose:
         print("#", cmd, file=sys.stderr)
     if isinstance(cmd, str):
         cmd = ["/bin/bash", "-c", cmd]
@@ -272,4 +276,4 @@ def gopen(url, filemode="rb"):
     elif pr.scheme=="file":
         return open(pr.path, filemode)
     verb = {"r": "read", "w": "write"}[filemode[0]]
-    return cmd_handler(url, verb, stream=stream)
+    return cmd_handler(url, verb)
