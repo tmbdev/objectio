@@ -19,6 +19,8 @@ from urllib.parse import urlparse
 
 env_prefix = "OBJIO_"
 
+# FIXME: move defaults into a separate, installable file
+
 default = """
 config:
 
@@ -119,7 +121,6 @@ class Pipe(object):
             stdin = stream or subprocess.PIPE
         else:
             stdout = stream or subprocess.PIPE
-        print(f"PPP {cmd} {writable} {stream} stdin={stdin} stdout={stdout} {subprocess.PIPE}", file=sys.stderr)
         self.proc = subprocess.Popen(cmd, bufsize=bufsize, stdin=stdin, stdout=stdout, **kw)
         self.stream = None
         if not stream:
@@ -227,7 +228,7 @@ def writable(verb):
     """Does the given verb require a writable file descriptor?"""
     return verb == "write"
 
-def cmd_handler(url, verb, raise_errors=True, stream=None, verbose=True):
+def cmd_handler(url, verb, raise_errors=True, stream=None, verbose=False):
     """Given a url and verb, handle the command."""
     handler = get_handler_for(url, verb)
     if handler is None:
@@ -244,13 +245,11 @@ def cmd_handler(url, verb, raise_errors=True, stream=None, verbose=True):
     pr = urlparse(url)
     if handler.get("substitute", True):
         cmd = substitute_variables(cmd, url_variables(url, pr))
-    if int(os.environ.get(env_prefix+"gopen_debug", "0")):
+    if int(os.environ.get(env_prefix+"objio_debug", "0")) or verbose:
         print("#", cmd, file=sys.stderr)
     if isinstance(cmd, str):
         cmd = ["/bin/bash", "-c", cmd]
     assert isinstance(cmd, (list, tuple))
-    if verbose:
-        print(f"# executing {cmd} with writable={writable(verb)}", file=sys.stderr)
     return Pipe(cmd, writable(verb), raise_errors=True, stream=stream)
 
 def objopen(url, verb="read", stream=None):
