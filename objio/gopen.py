@@ -30,7 +30,7 @@ schemes:
     read:
       cmd: ["dd", "if={path}", "bs=4M"]
     write:
-      cmd: ["dd", "if=-", "of={path}", "bs=4M"]
+      cmd: ["dd", "of={path}", "bs=4M"]
     list:
       cmd: "ls -1d {abspath}/*"
     buckets:
@@ -119,10 +119,11 @@ class Pipe(object):
             stdin = stream or subprocess.PIPE
         else:
             stdout = stream or subprocess.PIPE
+        print(f"PPP {cmd} {writable} {stream} stdin={stdin} stdout={stdout} {subprocess.PIPE}", file=sys.stderr)
         self.proc = subprocess.Popen(cmd, bufsize=bufsize, stdin=stdin, stdout=stdout, **kw)
         self.stream = None
         if not stream:
-            self.stream = self.proc.stdout if not writable else self.proc.stdin
+            self.stream = self.proc.stdin if writable else self.proc.stdout
             if self.stream is None:
                 raise ObjioExeption(f"{cmd}: no stream (open)")
         self.status = None
@@ -224,9 +225,9 @@ def substitute_variables(cmd, variables):
 
 def writable(verb):
     """Does the given verb require a writable file descriptor?"""
-    return verb == "read"
+    return verb == "write"
 
-def cmd_handler(url, verb, raise_errors=True, stream=None):
+def cmd_handler(url, verb, raise_errors=True, stream=None, verbose=True):
     """Given a url and verb, handle the command."""
     handler = get_handler_for(url, verb)
     if handler is None:
@@ -248,6 +249,8 @@ def cmd_handler(url, verb, raise_errors=True, stream=None):
     if isinstance(cmd, str):
         cmd = ["/bin/bash", "-c", cmd]
     assert isinstance(cmd, (list, tuple))
+    if verbose:
+        print(f"# executing {cmd} with writable={writable(verb)}", file=sys.stderr)
     return Pipe(cmd, writable(verb), raise_errors=True, stream=stream)
 
 def objopen(url, verb="read", stream=None):
@@ -259,12 +262,11 @@ def objopen(url, verb="read", stream=None):
 
 def gopen(url, filemode="rb"):
     """Open a storage object. This shortcuts to open() for local files and accepts file open modes."""
-    if allow_files:
-        if url == "-":
-            stream = {"r": sys.stdout, "w": sys.stdin}[filemode[0]]
-            if "b" in filemode:
-                stream = stream.buffer
-            return stream
+    if url == "-":
+        stream = {"r": sys.stdout, "w": sys.stdin}[filemode[0]]
+        if "b" in filemode:
+            stream = stream.buffer
+        return stream
     pr = urlparse(url)
     if pr.scheme=="":
         return open(url, filemode)
