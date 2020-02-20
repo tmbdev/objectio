@@ -13,8 +13,6 @@ VERSION = '0.1.7'
 if sys.version_info < (3, 6):
     sys.exit("Python versions less than 3.6 are not supported")
 
-scripts = "obj".split()
-
 setuptools.setup(
     name='objio',
     version=VERSION,
@@ -34,6 +32,6 @@ setuptools.setup(
     keywords="object store, client, deep learning",
     packages=["objio"],
     python_requires=">=3.6",
-    scripts=scripts,
+    scripts=["obj"],
     install_requires="pyyaml braceexpand simplejson typer".split()
 )
