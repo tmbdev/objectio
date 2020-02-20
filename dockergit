@@ -14,5 +14,9 @@ docker build -t objiotest --no-cache - <<EOF
 FROM objiotest-base
 ENV SHELL=/bin/bash
 RUN git clone https://git@github.com/tmbdev/objio.git /tmp/objio
-RUN /bin/bash -c 'cd /tmp/objio && make venv && source venv/bin/activate && make tests'
+WORKDIR /tmp/objio
+RUN python3 -m venv venv
+RUN . venv/bin/activate; pip install --no-cache-dir pytest
+RUN . venv/bin/activate; pip install --no-cache-dir -r requirements.txt
+RUN . venv/bin/activate; python3 -m pytest
 EOF
