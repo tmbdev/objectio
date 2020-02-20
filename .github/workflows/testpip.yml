@@ -3,7 +3,7 @@ on:
   schedule:
     - cron: "0 3 * * *"
 jobs:
-  test:
+  testpip:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
