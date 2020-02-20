@@ -226,7 +226,7 @@ def url_variables(url, pr):
 
 
 def substitute_variables(cmd, variables):
-    """Given a cmd specified either as a string or as a list, substitute the variables."""
+    """Given a cmd (str, list), substitute variables in it."""
     if isinstance(cmd, list):
         return [s.format(**variables) for s in cmd]
     elif isinstance(cmd, str):
@@ -274,7 +274,7 @@ def objopen(url, verb="read", stream=None):
 
 
 def gopen(url, filemode="rb"):
-    """Open a storage object. This shortcuts to open() for local files and accepts file open modes."""
+    """Open a storage object, with standard file modes and local files."""
     if url == "-":
         stream = {"r": sys.stdout, "w": sys.stdin}[filemode[0]]
         if "b" in filemode:
