@@ -17,20 +17,20 @@ from urllib.parse import urlparse
 
 from .checks import checkmember, checktype
 
-env_prefix = "OBJIO_"
+ENV_PREFIX = "OBJIO_"
 
-objio_debug = int(os.environ.get(env_prefix+"DEBUG", "0"))
+OBJIO_DEBUG = int(os.environ.get(ENV_PREFIX+"DEBUG", "0"))
 
-objio_path = "/usr/local/etc/objio.yaml:~/.objio.yaml:./objio.yaml"
-objio_path += ":" + objio_path.replace("yaml", "yml")
-objio_path = os.environ.get(env_prefix+"PATH", objio_path)
+OBJIO_PATH = "/usr/local/etc/objio.yaml:~/.objio.yaml:./objio.yaml"
+OBJIO_PATH += ":" + OBJIO_PATH.replace("yaml", "yml")
+OBJIO_PATH = os.environ.get(ENV_PREFIX+"PATH", OBJIO_PATH)
 
-if objio_debug:
-    print(f"# objio path: {objio_path}", file=sys.stderr)
+if OBJIO_DEBUG:
+    print(f"# objio path: {OBJIO_PATH}", file=sys.stderr)
 
 # FIXME: move defaults into a separate, installable file
 
-default = """
+DEFAULT_CONFIG = """
 config:
 
   bufsize: 8192
@@ -81,7 +81,7 @@ schemes:
         cmd: "az storage blob list --container-name '{netloc}'"
 """
 
-with io.StringIO(default) as stream:
+with io.StringIO(DEFAULT_CONFIG) as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)
 
 
@@ -98,15 +98,15 @@ def update_yaml_with(target, source):
 # load YAML config files
 
 
-for path in objio_path.split(":"):
+for path in OBJIO_PATH.split(":"):
     if os.path.exists(path):
-        if objio_debug:
+        if OBJIO_DEBUG:
             print(f"objio updating config with {path}", file=sys.stderr)
         with open(path) as stream:
             updates = yaml.load(stream, Loader=yaml.FullLoader)
             config = update_yaml_with(config, updates)
 
-if objio_debug:
+if OBJIO_DEBUG:
     yaml.dump(config, sys.stderr)
 
 
@@ -250,14 +250,14 @@ def cmd_handler(url, verb, ignore_errors=False, stream=None, verbose=False):
     if message is not None:
         print(f"{verb} for {url}:\n")
         print(message, file=sys.stderr)
-        return
+        return None
     cmd = handler.get("cmd")
     if cmd is None:
         raise ValueError("{url}: config neither specifies message: nor cmd:")
     pr = urlparse(url)
     if handler.get("substitute", True):
         cmd = substitute_variables(cmd, url_variables(url, pr))
-    if objio_debug or verbose:
+    if OBJIO_DEBUG or verbose:
         print("#", cmd, file=sys.stderr)
     if isinstance(cmd, str):
         cmd = ["/bin/bash", "-c", cmd]

@@ -5,11 +5,10 @@
 # See the LICENSE file for licensing terms (BSD-style).
 #
 
-VERSION='0.1.6'
-
 import sys
-from distutils.core import setup  # , Extension, Command
 import setuptools
+
+VERSION = '0.1.7'
 
 if sys.version_info < (3, 6):
     sys.exit("Python versions less than 3.6 are not supported")

@@ -4,4 +4,4 @@
 # See the LICENSE file for licensing terms (BSD-style).
 #
 
-from .io import env_prefix, config, objopen, gopen, cmd_handler
+from .io import ENV_PREFIX, DEFAULT_CONFIG, objopen, gopen, cmd_handler
