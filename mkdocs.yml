@@ -4,6 +4,6 @@ nav:
     - Examples: examples.md
     - Configuration: configuration.md
     - Development: development.md
-    - Pydoc: pydoc.md
-    - Command Line Usage: commands.md
+    - Module Docs: pydoc.md
+    - Command Usage: commands.md
 theme: readthedocs

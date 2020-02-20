@@ -35,7 +35,7 @@ dist: FORCE
 
 # build the documentation
 
-docs: venv FORCE
+docs: FORCE
 	./helpers/gendocs
 
 docspush: FORCE
