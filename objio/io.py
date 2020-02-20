@@ -120,7 +120,7 @@ class ObjioExeption(Exception):
         self.info = info
 
 
-class Pipe(object):
+class Pipe:
     """A wrapper for the subproces.Pipe class that checks status on read/write."""
     def __init__(self, cmd, writable, ignore_errors=False, stream=None, bufsize=8192, timeout=60.0, **kw):
         checktype(cmd, list)
@@ -184,7 +184,7 @@ class Pipe(object):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, etype, value, traceback):
         self.close()
 
 
