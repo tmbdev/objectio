@@ -2,7 +2,6 @@ coverage
 jupyter
 licenseheaders
 mkdocs
-pydoc-markdown
 pytest
 setuptools
 wheel

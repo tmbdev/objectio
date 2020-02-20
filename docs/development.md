@@ -7,7 +7,7 @@ For development, we're using the following Python tools:
 - Packaging: setuptools wheel
 - Testing: pytest (also: coverage tox)
 - Uploading to PyPI: twine keyring
-- Documentation generation: mkdocs pydoc-markdown jupyter nbconvert
+- Documentation generation: mkdocs nbconvert pydoc3 (builtin)
 
 This is a fairly minimalist set of tools for modern Python packaging.
 
