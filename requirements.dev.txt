@@ -6,8 +6,5 @@ pydoc-markdown
 pytest
 setuptools
 wheel
-jupyter
-jupyterlab
 nbconvert
-nbformat
 keyring
