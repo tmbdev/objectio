@@ -83,3 +83,38 @@ Note that for Python, running I/O in a separate process is _preferable_ to using
 Python-native libraries, since the latter do not run concurrently. For a Go
 language implementation, protocol implementations using built in native client
 libraries are potentially useful.
+
+# Development
+
+For development, we're using the following Python tools:
+
+- Packaging: setuptools wheel
+- Testing: pytest (also: coverage tox)
+- Uploading to PyPI: twine keyring
+- Documentation generation: mkdocs pydoc-markdown jupyter nbconvert
+
+Custom scripts:
+
+- Automation: Makefile
+- Documentation generation: cmd2md
+- Testing on Docker: dockergit dockerpip
+
+Configuration:
+
+- requirements for virtual environment: requirements.txt
+- requirements for pip install: setup.py
+- requirements for development: requirements.dev.txt
+
+Makefile targets
+
+- tests: run unit tests
+- venv: setup the virtualenv
+- push: push to github
+- dist: make a distribution on PyPI
+- docs: build the docs
+- clean: clean temporary files, build artifacts
+- passwd: authenticate to keyring
+
+This is a fairly minimalist set of tools for modern Python packaging.
+In the future, we'll like set up automatic builds, testing, and packaging
+using CircleCI or TravisCI.

@@ -5,6 +5,8 @@
 # See the LICENSE file for licensing terms (BSD-style).
 #
 
+VERSION='0.1.5'
+
 import sys
 from distutils.core import setup  # , Extension, Command
 import setuptools
@@ -16,7 +18,7 @@ scripts = "obj".split()
 
 setuptools.setup(
     name='objio',
-    version='0.1.4',
+    version=VERSION,
     description="Generic object storage interface and commands.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
