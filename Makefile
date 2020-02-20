@@ -40,6 +40,14 @@ dist: FORCE
 docs: venv FORCE
 	./gendocs
 
+docspush: FORCE
+	make docs
+	git status | awk '/modified:/{if(index($$0, ".md")<=0)exit(1)}'
+	git add docs/*.md
+	git add README.md
+	git commit -a -m "documentation update"
+	./dockergit
+
 # remove temporary build constructs
 
 clean: FORCE

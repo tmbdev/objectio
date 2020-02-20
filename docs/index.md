@@ -91,6 +91,8 @@ libraries are potentially useful.
 
 # Development
 
+## Tools
+
 For development, we're using the following Python tools:
 
 - Packaging: setuptools wheel
@@ -98,11 +100,15 @@ For development, we're using the following Python tools:
 - Uploading to PyPI: twine keyring
 - Documentation generation: mkdocs pydoc-markdown jupyter nbconvert
 
+This is a fairly minimalist set of tools for modern Python packaging.
+
 Custom scripts:
 
 - Automation: Makefile
 - Documentation generation: gendocs
 - Testing on Docker: dockergit dockerpip
+
+## Configuration Files
 
 Configuration:
 
@@ -119,7 +125,3 @@ Makefile targets
 - docs: build the docs
 - clean: clean temporary files, build artifacts
 - passwd: authenticate to keyring
-
-This is a fairly minimalist set of tools for modern Python packaging.
-In the future, we'll like set up automatic builds, testing, and packaging
-using CircleCI or TravisCI.
