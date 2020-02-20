@@ -5,7 +5,7 @@
 # See the LICENSE file for licensing terms (BSD-style).
 #
 
-VERSION='0.1.5'
+VERSION='0.1.6'
 
 import sys
 from distutils.core import setup  # , Extension, Command
