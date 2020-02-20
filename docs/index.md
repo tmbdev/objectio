@@ -125,3 +125,5 @@ Makefile targets
 - docs: build the docs
 - clean: clean temporary files, build artifacts
 - passwd: authenticate to keyring
+
+Most functions will likely move to Github Actions soon.
