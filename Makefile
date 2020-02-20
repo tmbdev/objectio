@@ -1,5 +1,10 @@
 #!/bin/bash
 
+VENV=venv
+PYTHON3=$(VENV)/bin/python3
+PIPOPT=--no-cache-dir
+PIP=$(VENV)/bin/pip $(PIPOPT)
+
 # run the unit tests in a virtual environment
 
 tests: venv FORCE
@@ -8,10 +13,13 @@ tests: venv FORCE
 
 # build the virtual environment for development and testing
 
-venv: FORCE
-	test -d venv || python3 -m venv venv
-	. ./venv/bin/activate; python3 -m pip install -r requirements.dev.txt
-	. ./venv/bin/activate; python3 -m pip install -r requirements.txt
+venv: $(VENV)/bin/activate
+
+$(VENV)/bin/activate: requirements.txt requirements.dev.txt
+	test -d $(VENV) || python3 -m venv $(VENV)
+	$(PIP) install -r requirements.dev.txt
+	$(PIP) install -r requirements.txt
+	touch $(VENV)/bin/activate
 
 # push a new version to github; commit all changes first or this will fail
 # after a successful push, it will try to clone the repo into a docker container
@@ -28,10 +36,15 @@ push: FORCE
 
 dist: FORCE
 	rm -f dist/*
-	. ./venv/bin/activate; python3 setup.py sdist bdist_wheel
+	$(PYTHON3) setup.py sdist bdist_wheel
 	twine check dist/*
 	twine upload dist/*
-	./helpers/dockerpip
+
+githubtest:
+	./helpers/dockertest git
+
+pypitest:
+	./helpers/dockertest pip
 
 # build the documentation
 
@@ -56,6 +69,6 @@ clean: FORCE
 # set the keyring password for pypi uploads
 
 passwd: FORCE
-	. ./venv/bin/activate; python3 -m keyring set https://upload.pypi.org/legacy/ tmbdev
+	$(PYTHON3) -m keyring set https://upload.pypi.org/legacy/ tmbdev
 
 FORCE:
