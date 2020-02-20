@@ -6,9 +6,7 @@
 #
 from __future__ import unicode_literals
 
-import os
 import sys
-import subprocess
 import objio
 import yaml
 import io

@@ -5,19 +5,20 @@
 #
 from __future__ import unicode_literals
 
-import os
-import sys
 import subprocess
+
 
 def run(script, *args):
     result = subprocess.check_output(["/bin/bash", "-c", script]).decode("utf-8")
     for arg in args:
         assert arg in result, (arg, result)
 
+
 def test_obj():
     run("python3 ./obj --help", "auth", "buckets", "cat", "put")
     run("python3 ./obj cat --help", "--timeout")
     run("python3 ./obj put --help", "--timeout")
+
 
 def test_obj_cat():
     run("python3 ./obj cat http://lpr-openimages.storage.googleapis.com/openimages-shard.ipynb",
