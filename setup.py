@@ -5,27 +5,34 @@
 # See the LICENSE file for licensing terms (BSD-style).
 #
 
-from __future__ import print_function
-
 import sys
-import glob
 from distutils.core import setup  # , Extension, Command
+import setuptools
 
 if sys.version_info < (3, 6):
     sys.exit("Python versions less than 3.6 are not supported")
 
-scripts=["obj"]
+scripts = "obj".split()
 
-prereqs = """
-    typer
-""".split()
-
-setup(
+setuptools.setup(
     name='objio',
-    version='v0.0',
+    version='v0.1.0',
+    description="Generic object storage interface and commands.",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
+    url="http://github.com/tmbdev/objio",
     author="Thomas Breuel",
-    description="Generic object storage interface and command.",
-    packages=["objio"],
+    author_email="tmbdev+removeme@gmail.com",
+    license="MIT",
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "License :: OSI Approved :: BSD License",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7"
+    ],
+    keywords="object store, client, deep learning",
+    packages=setuptools.find_packages(exclude=["tests", "docs", "examples"]),
+    python_requires=">=3.6",
     scripts=scripts,
-    install_requires=prereqs,
+    install_requires=open("requirements.txt").read().split(),
 )

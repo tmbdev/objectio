@@ -1,22 +1,27 @@
 #!/bin/bash
 
-tests: virtualenv
+package: tests docs testdist
+
+dist: FORCE
+	. ./venv/bin/activate; python3 setup.py sdist bdist_wheel
+	twine upload dist/*
+
+tests: venv
 	rm -f objio.yaml objio.yml
 	. ./venv/bin/activate; python3 -m pytest
 
-virtualenv: FORCE
+venv: FORCE
 	test -d venv || python3 -m venv venv
+	. ./venv/bin/activate; python3 -m pip install --no-cache -r requirements.dev.txt
 	. ./venv/bin/activate; python3 -m pip install --no-cache -r requirements.txt
 
 docs: FORCE
-	cp README.md docs/index.md
-	jupyter nbconvert --to markdown notebooks/examples.ipynb
-	mv notebooks/examples.md docs/examples.md
-	pydocmd simple objio.io > docs/io.md
-	./cmd2md obj > docs/obj.md
-	#mkdocs build
+	./gendocs
 
 clean: FORCE
 	rm -rf venv
+
+passwd: FORCE
+	. ./venv/bin/activate; python3 -m keyring set https://upload.pypi.org/legacy/ tmbdev
 
 FORCE:

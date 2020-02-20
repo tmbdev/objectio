@@ -50,6 +50,18 @@ Options:
 ```
 
 
+## obj config (subcommand)
+
+```generic
+Usage: obj config [OPTIONS]
+
+  Output the entire config file.
+
+Options:
+  --help  Show this message and exit.
+```
+
+
 ## obj handler (subcommand)
 
 ```generic

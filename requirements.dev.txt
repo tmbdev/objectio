@@ -1,0 +1,12 @@
+coverage
+jupyter
+licenseheaders
+mkdocs
+pydoc-markdown
+pytest
+setuptools
+wheel
+jupyter
+nbconvert
+nbformat
+keyring
