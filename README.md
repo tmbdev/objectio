@@ -1,6 +1,5 @@
 [![Test](https://github.com/tmbdev/objio/workflows/Test/badge.svg)](http://github.com/tmbdev/objio/actions)
 [![TestPip](https://github.com/tmbdev/objio/workflows/TestPip/badge.svg)](http://github.com/tmbdev/objio/actions)
-[![ReadTheDocs](https://readthedocs.org/projects/objio/badge/?version=stable)](http://objio.readthedocs.io)
 [![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/tmbdev/objio/?ref=repository-badge)
 
 # The Object IO Library and Command
@@ -9,6 +8,8 @@ Object stores (S3, Google, Azure, Minio, Swift, etc.) all have their own
 command line interfaces with their own conventions for accessing objects.
 This library and command provides a simple, uniform interface to object
 store facilities, both from the command line and from within Python.
+
+Documentation: [ReadTheDocs](http://objio.readthedocs.io)
 
 # Command Line Usage
 
