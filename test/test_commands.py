@@ -20,5 +20,5 @@ def test_obj():
     run("./obj put --help", "--timeout")
 
 def test_obj_cat():
-    run("./obj cat gs://lpr-openimages/openimages-shard.ipynb",
+    run("./obj cat http://lpr-openimages.storage.googleapis.com/openimages-shard.ipynb",
         "with wds.ShardWriter")
