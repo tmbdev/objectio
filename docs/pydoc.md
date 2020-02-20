@@ -20,8 +20,8 @@ PACKAGE CONTENTS
     io
 
 DATA
-    config = {'config': {'bufsize': 8192}, 'schemes': {'az': {'buckets': {...
-    env_prefix = 'OBJIO_'
+    DEFAULT_CONFIG = '\nconfig:\n\n  bufsize: 8192\n\nschemes:\n\n  file:\...
+    ENV_PREFIX = 'OBJIO_'
 
 FILE
     /home/tmb/proj/objio/objio/__init__.py

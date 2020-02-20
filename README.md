@@ -1,4 +1,5 @@
 [![Test](https://github.com/tmbdev/objio/workflows/Test/badge.svg)](http://github.com/tmbdev/objio/actions)
+[![TestPip](https://github.com/tmbdev/objio/workflows/TestPip/badge.svg)](http://github.com/tmbdev/objio/actions)
 [![ReadTheDocs](https://readthedocs.org/projects/pip/badge/?version=stable)](http://objio.readthedocs.io)
 
 # The Object IO Library and Command
