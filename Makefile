@@ -20,8 +20,8 @@ push: FORCE
 	make tests
 	make docs
 	git add docs/*.md
-	git commit -a
 	git push
+	./dockergit
 
 docs: FORCE
 	./gendocs
