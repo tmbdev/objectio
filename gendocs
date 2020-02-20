@@ -1,4 +1,5 @@
 #!/bin/bash
+source venv/bin/activate
 set -e -x
 cp README.md docs/index.md
 jupyter nbconvert --to markdown notebooks/examples.ipynb

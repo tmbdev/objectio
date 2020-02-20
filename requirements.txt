@@ -1,3 +1,4 @@
 pyyaml
 braceexpand
 simplejson
+typer

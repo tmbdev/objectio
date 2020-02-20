@@ -16,7 +16,7 @@ scripts = "obj".split()
 
 setuptools.setup(
     name='objio',
-    version='v0.1.0',
+    version='0.1.2',
     description="Generic object storage interface and commands.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
@@ -31,8 +31,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7"
     ],
     keywords="object store, client, deep learning",
-    packages=setuptools.find_packages(exclude=["tests", "docs", "examples"]),
+    packages=["objio"],
     python_requires=">=3.6",
-    scripts=scripts,
-    install_requires=open("requirements.txt").read().split(),
+    scripts=scripts
 )
