@@ -1,12 +1,5 @@
 #!/bin/bash
 
-package: tests docs dist
-
-dist: FORCE
-	rm -f dist/*
-	. ./venv/bin/activate; python3 setup.py sdist bdist_wheel
-	twine upload dist/*
-
 tests: venv
 	rm -f objio.yaml objio.yml
 	. ./venv/bin/activate; python3 -m pytest
@@ -22,6 +15,12 @@ push: FORCE
 	git add docs/*.md
 	git push
 	./dockergit
+
+dist: FORCE
+	rm -f dist/*
+	. ./venv/bin/activate; python3 setup.py sdist bdist_wheel
+	twine upload dist/*
+	./dockerpip
 
 docs: FORCE
 	./gendocs

@@ -16,7 +16,7 @@ scripts = "obj".split()
 
 setuptools.setup(
     name='objio',
-    version='0.1.3',
+    version='0.1.4',
     description="Generic object storage interface and commands.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",

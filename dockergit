@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# test the github distribution in a container
+
+# build the base container
+
 docker build -t objiotest-base - <<EOF
 FROM ubuntu:19.10
 ENV LC_ALL=C
@@ -10,6 +15,9 @@ RUN apt-get install -qqy python3-pip
 RUN apt-get install -qqy python3-venv
 RUN apt-get install -qqy curl
 EOF
+
+# run the test as a second stage build without caching
+
 docker build -t objiotest --no-cache - <<EOF
 FROM objiotest-base
 ENV SHELL=/bin/bash
