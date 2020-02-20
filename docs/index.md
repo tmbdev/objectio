@@ -19,8 +19,21 @@ store facilities, both from the command line and from within Python.
 
 # Python Usage
 
+Accessing blobs from Python is easy: the two functions you need to know
+are:
+
+- `gopen`: opens a stream with standard Python filemodes; shortcuts for files
+- `objopen`: opens a stream with `objio` verbs; uses `file:` rule for files
+
 ```Python
     import objio
 
-    stream = objio.gopen("gs://bucket/blob", "rb")
+    with objio.gopen("gs://bucket/blob", "rb") as stream:
+        contents = stream.read()
+
+    with objio.openobj("gs://bucket/blob", "read") as stream:
+        contents = stream.read()
+
+    with objio.openobj("gs://bucket/", "list") as stream:
+        files = stream.read().split("\n")
 ```
