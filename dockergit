@@ -1,0 +1,18 @@
+#!/bin/bash
+docker build -t objiotest-base - <<EOF
+FROM ubuntu:19.10
+ENV LC_ALL=C
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get -qqy update
+RUN apt-get install -qqy git
+RUN apt-get install -qqy python3
+RUN apt-get install -qqy python3-pip
+RUN apt-get install -qqy python3-venv
+RUN apt-get install -qqy curl
+EOF
+docker build -t objiotest --no-cache - <<EOF
+FROM objiotest-base
+ENV SHELL=/bin/bash
+RUN git clone https://git@github.com/tmbdev/objio.git /tmp/objio
+RUN /bin/bash -c 'cd /tmp/objio && make venv && source venv/bin/activate && make tests'
+EOF
