@@ -1,17 +1,21 @@
+#!/usr/bin/python
+#
+# Copyright (c) 2017-2019 NVIDIA CORPORATION. All rights reserved.
+# This file is part of the objio library.
+# See the LICENSE file for licensing terms (BSD-style).
+#
 
 __all__ = "objopen gopen config".split()
 
 import os
 import sys
-import argparse
 import time
-from itertools import islice
 import subprocess
-import braceexpand
-import re
 import yaml
 import io
 from urllib.parse import urlparse
+
+from .checks import checkmember, checktype
 
 env_prefix = "OBJIO_"
 
@@ -80,23 +84,6 @@ schemes:
 with io.StringIO(default) as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)
 
-def checktype(value, types, msg=""):
-    """Type check value; raise ValueError if fails."""
-    if not isinstance(value, types):
-        raise ValueError(f"ERROR {msg}: {value} should be of type {types}")
-
-
-def checkmember(value, values, msg=""):
-    """Check value for membership; raise ValueError if fails."""
-    if value not in values:
-        raise ValueError(f"ERROR {msg}: {value} should be in {values}")
-
-
-def checkrange(value, lo, hi, msg=""):
-    """Check value for membership; raise ValueError if fails."""
-    if value < lo or value > hi:
-        raise ValueError(f"ERROR {msg}: {value} should be in range {lo} {hi}")
-
 
 def update_yaml_with(target, source):
     """Merge the source YAML tree into the target. Useful for merging config files."""
@@ -110,6 +97,7 @@ def update_yaml_with(target, source):
 
 # load YAML config files
 
+
 for path in objio_path.split(":"):
     if os.path.exists(path):
         if objio_debug:
@@ -121,13 +109,16 @@ for path in objio_path.split(":"):
 if objio_debug:
     yaml.dump(config, sys.stderr)
 
+
 checkmember("schemes", list(config.keys()), "config file error")
+
 
 class ObjioExeption(Exception):
     """I/O Exceptions during objio operations."""
     def __init__(self, info):
         super().__init__()
         self.info = info
+
 
 class Pipe(object):
     """A wrapper for the subproces.Pipe class that checks status on read/write."""
@@ -148,26 +139,32 @@ class Pipe(object):
             if self.stream is None:
                 raise ObjioExeption(f"{cmd}: no stream (open)")
         self.status = None
+
     def check_status(self):
         self.status = self.proc.poll()
         self.handle_status()
+
     def handle_status(self):
         if self.status is not None:
             self.status = self.proc.wait()
             if self.status != 0 and not self.ignore_errors:
                 raise ObjioExeption(f"{self.args}: exit {self.status} (write)")
+
     def write(self, *args, **kw):
         result = self.stream.write(*args, **kw)
         self.check_status()
         return result
+
     def read(self, *args, **kw):
         result = self.stream.read(*args, **kw)
         self.check_status()
         return result
+
     def readLine(self, *args, **kw):
         result = self.stream.readLine(*args, **kw)
         self.check_status()
         return result
+
     def wait(self, timeout=None):
         timeout = timeout or self.timeout
         try:
@@ -178,21 +175,26 @@ class Pipe(object):
             self.proc.kill()
             self.status = self.proc.wait(1.0)
         self.check_status()
+
     def close(self, timeout=None):
         if self.stream is not None:
             self.stream.close()
         self.wait(timeout)
+
     def __enter__(self):
         return self
+
     def __exit__(self, type, value, traceback):
         self.close()
+
 
 def maybe(f, default):
     """Evaluate f and return the value; return default on error."""
     try:
         return f()
-    except:
+    except:  # noqa: E722
         return default
+
 
 def get_handler_for(url, verb):
     """Look for a handler for the url/verb combination in the config file."""
@@ -201,25 +203,27 @@ def get_handler_for(url, verb):
     schemes = config.get("schemes")
     scheme = schemes.get(pr.scheme)
     if scheme is None:
-        raise ValueError(f"objio: {url}: no handler found for {pr.scheme}"+
+        raise ValueError(f"objio: {url}: no handler found for {pr.scheme}" +
                          " (known: " + " ".join(schemes.keys())+")")
     handler = scheme.get(verb)
     if handler is None:
-        raise ValueError(f"objio: {url}: no handler found for {pr.scheme}, verb {verb}"+
+        raise ValueError(f"objio: {url}: no handler found for {pr.scheme}, verb {verb}" +
                          yaml.dump(handler))
     return handler
+
 
 def url_variables(url, pr):
     """Generate a dictionary exposing the URL components. Names follow urlparse."""
     result = dict(pr._asdict(),
                   url=url,
-                  firstdir=maybe(lambda:pr.path.split("/")[1], ""),
-                  restdirs=maybe(lambda:"/".join(pr.path.split("/")[2:]), ""),
+                  firstdir=maybe(lambda: pr.path.split("/")[1], ""),
+                  restdirs=maybe(lambda: "/".join(pr.path.split("/")[2:]), ""),
                   dirname=os.path.dirname(pr.path),
                   filename=os.path.basename(pr.path))
-    if pr.scheme=="file":
+    if pr.scheme == "file":
         result["abspath"] = os.path.abspath(pr.path)
     return result
+
 
 def substitute_variables(cmd, variables):
     """Given a cmd specified either as a string or as a list, substitute the variables."""
@@ -230,15 +234,17 @@ def substitute_variables(cmd, variables):
     else:
         raise ValueError(f"cmd: {cmd}: wrong type")
 
+
 def writable(verb):
     """Does the given verb require a writable file descriptor?"""
     return verb == "write"
+
 
 def cmd_handler(url, verb, ignore_errors=False, stream=None, verbose=False):
     """Given a url and verb, find the command handler."""
     handler = get_handler_for(url, verb)
     if handler is None:
-        raise ValueError(f"objio: {url}: no command specified for verb {verb}\n"+
+        raise ValueError(f"objio: {url}: no command specified for verb {verb}\n" +
                          yaml.dump(handler))
     message = handler.get("message")
     if message is not None:
@@ -258,12 +264,14 @@ def cmd_handler(url, verb, ignore_errors=False, stream=None, verbose=False):
     checktype(cmd, (list, tuple))
     return Pipe(cmd, writable(verb), ignore_errors=True, stream=stream)
 
+
 def objopen(url, verb="read", stream=None):
     """Open a storage object. This always spawns a subprocess and supports all verbs."""
     pr = urlparse(url)
     if pr.scheme == "":
         url = "file:"+url
     return cmd_handler(url, verb, stream=stream)
+
 
 def gopen(url, filemode="rb"):
     """Open a storage object. This shortcuts to open() for local files and accepts file open modes."""
@@ -273,9 +281,9 @@ def gopen(url, filemode="rb"):
             stream = stream.buffer
         return stream
     pr = urlparse(url)
-    if pr.scheme=="":
+    if pr.scheme == "":
         return open(url, filemode)
-    elif pr.scheme=="file":
+    elif pr.scheme == "file":
         return open(pr.path, filemode)
     verb = {"r": "read", "w": "write"}[filemode[0]]
     return cmd_handler(url, verb)
