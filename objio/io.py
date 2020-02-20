@@ -262,7 +262,7 @@ def cmd_handler(url, verb, ignore_errors=False, stream=None, verbose=False):
     if isinstance(cmd, str):
         cmd = ["/bin/bash", "-c", cmd]
     checktype(cmd, (list, tuple))
-    return Pipe(cmd, writable(verb), ignore_errors=True, stream=stream)
+    return Pipe(cmd, writable(verb), ignore_errors=ignore_errors, stream=stream)
 
 
 def objopen(url, verb="read", stream=None):

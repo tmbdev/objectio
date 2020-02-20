@@ -9,7 +9,7 @@ import os
 import sys
 import subprocess
 
-def run(script, *args, **kw):
+def run(script, *args):
     result = subprocess.check_output(["/bin/bash", "-c", script]).decode("utf-8")
     for arg in args:
         assert arg in result, (arg, result)
