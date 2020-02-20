@@ -3,5 +3,5 @@ nav:
     - Home: index.md
     - Examples: examples.md
     - objio: objio.md
-    - obj: objcommand.md
+    - obj: obj.md
 theme: readthedocs

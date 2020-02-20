@@ -10,19 +10,17 @@ tests: venv FORCE
 
 venv: FORCE
 	test -d venv || python3 -m venv venv
-	. ./venv/bin/activate; python3 -m pip install --no-cache -r requirements.dev.txt
-	. ./venv/bin/activate; python3 -m pip install --no-cache -r requirements.txt
+	. ./venv/bin/activate; python3 -m pip install -r requirements.dev.txt
+	. ./venv/bin/activate; python3 -m pip install -r requirements.txt
 
 # push a new version to github; commit all changes first or this will fail
 # after a successful push, it will try to clone the repo into a docker container
 # and execute the tests
 
 push: FORCE
-	make tests
 	make docs
 	git add docs/*.md
 	git push
-	./dockergit
 
 # push a new version to pypi; commit all changes first or this will fail
 # after a successful push, it will try to clone the repo into a docker container
@@ -33,12 +31,12 @@ dist: FORCE
 	. ./venv/bin/activate; python3 setup.py sdist bdist_wheel
 	twine check dist/*
 	twine upload dist/*
-	./dockerpip
+	./helpers/dockerpip
 
 # build the documentation
 
 docs: venv FORCE
-	./gendocs
+	./helpers/gendocs
 
 docspush: FORCE
 	make docs
