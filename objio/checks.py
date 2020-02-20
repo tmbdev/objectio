@@ -6,6 +6,7 @@
 #
 
 
+
 def checktype(value, types, msg=""):
     """Type check value; raise ValueError if fails."""
     if not isinstance(value, types):
