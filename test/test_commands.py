@@ -15,10 +15,10 @@ def run(script, *args, **kw):
         assert arg in result, (arg, result)
 
 def test_obj():
-    run("./obj --help", "auth", "buckets", "cat", "put")
-    run("./obj cat --help", "--timeout")
-    run("./obj put --help", "--timeout")
+    run("python3 ./obj --help", "auth", "buckets", "cat", "put")
+    run("python3 ./obj cat --help", "--timeout")
+    run("python3 ./obj put --help", "--timeout")
 
 def test_obj_cat():
-    run("python3 -m ./obj cat http://lpr-openimages.storage.googleapis.com/openimages-shard.ipynb",
+    run("python3 ./obj cat http://lpr-openimages.storage.googleapis.com/openimages-shard.ipynb",
         "with wds.ShardWriter")
