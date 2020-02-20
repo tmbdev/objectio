@@ -26,9 +26,15 @@ import io
 from urllib.parse import urlparse
 
 env_prefix = "OBJIO_"
+
 objio_debug = int(os.environ.get(env_prefix+"DEBUG", "0"))
+
+objio_path = "/usr/local/etc/objio.yaml:~/.objio.yaml:./objio.yaml"
+objio_path += ":" + objio_path.replace("yaml", "yml")
+objio_path = os.environ.get(env_prefix+"PATH", objio_path)
+
 if objio_debug:
-    print("objio DEBUG mode", file=sys.stderr)
+    print(f"# objio path: {objio_path}", file=sys.stderr)
 
 # FIXME: move defaults into a separate, installable file
 
@@ -96,17 +102,10 @@ def update_yaml_with(target, source):
                 target[k] = update_yaml_with(target[k], v)
     return source
 
-env_vars = [
-    (env_prefix+"SYSTEM", "/usr/local/etc/objio.yaml"),
-    (env_prefix+"USER", os.path.expanduser("~/.objio.yml")),
-    (env_prefix+"LOCAL", "./objio.yml")
-]
-
 # load YAML config files
 
-for var, default in env_vars:
-    path = os.environ.get(var, default)
-    if path is not None and os.path.exists(path):
+for path in objio_path.split(":"):
+    if os.path.exists(path):
         if objio_debug:
             print(f"objio updating config with {path}", file=sys.stderr)
         with open(path) as stream:
@@ -116,6 +115,8 @@ for var, default in env_vars:
 if objio_debug:
     yaml.dump(config, sys.stderr)
 
+assert "schemes" in config.keys()
+
 class ObjioExeption(Exception):
     """I/O Exceptions during objio operations."""
     def __init__(self, info):
@@ -123,11 +124,12 @@ class ObjioExeption(Exception):
         self.info = info
 
 class Pipe(object):
-    """A wrapper for the pipe class that adapts it to the needs of objio."""
-    def __init__(self, cmd, writable, raise_errors=True, stream=None, bufsize=8192, **kw):
+    """A wrapper for the subproces.Pipe class that checks status on read/write."""
+    def __init__(self, cmd, writable, ignore_errors=False, stream=None, bufsize=8192, timeout=60.0, **kw):
         assert isinstance(cmd, list)
+        self.timeout = timeout
         self.args = (cmd, writable)
-        self.raise_errors = raise_errors
+        self.ignore_errors = ignore_errors
         stdin = stdout = None
         if writable:
             stdin = stream or subprocess.PIPE
@@ -140,33 +142,28 @@ class Pipe(object):
             if self.stream is None:
                 raise ObjioExeption(f"{cmd}: no stream (open)")
         self.status = None
+    def check_status(self):
+        self.status = self.proc.poll()
+        self.handle_status()
+    def handle_status(self):
+        if self.status is not None:
+            self.status = self.proc.wait()
+            if self.status != 0 and not self.ignore_errors:
+                raise ObjioExeption(f"{self.args}: exit {self.status} (write)")
     def write(self, *args, **kw):
         result = self.stream.write(*args, **kw)
-        self.status = self.proc.poll()
-        if self.status is not None:
-            self.status = self.proc.wait()
-            if self.status != 0 and self.raise_errors:
-                raise ObjioExeption(f"{self.args}: exit {self.status} (write)")
+        self.check_status()
+        return result
     def read(self, *args, **kw):
         result = self.stream.read(*args, **kw)
-        self.status = self.proc.poll()
-        if self.status is not None:
-            self.status = self.proc.wait()
-            if self.status != 0 and self.raise_errors:
-                raise ObjioExeption(f"{self.args}: exit {self.status} (read)")
+        self.check_status()
         return result
     def readLine(self, *args, **kw):
         result = self.stream.readLine(*args, **kw)
-        self.status = self.proc.poll()
-        if self.status is not None:
-            self.status = self.proc.wait()
-            if self.status != 0 and self.raise_errors:
-                raise ObjioExeption(f"{self.args}: exit {self.status} (readLine)")
-    def wait(self, timeout=3600.0):
-        self.proc.wait(timeout)
-    def close(self, timeout=3600.0):
-        if self.stream is not None:
-            self.stream.close()
+        self.check_status()
+        return result
+    def wait(self, timeout=None):
+        timeout = timeout or self.timeout
         try:
             self.status = self.proc.wait(timeout)
         except subprocess.TimeoutExpired:
@@ -174,9 +171,11 @@ class Pipe(object):
             time.sleep(0.1)
             self.proc.kill()
             self.status = self.proc.wait(1.0)
-        if self.raise_errors == "all":
-            if self.status != 0 and self.raise_errors:
-                raise ObjioExeption(f"{self.args}: exit {self.status} (close)")
+        self.check_status()
+    def close(self, timeout=None):
+        if self.stream is not None:
+            self.stream.close()
+        self.wait(timeout)
     def __enter__(self):
         return self
     def __exit__(self, type, value, traceback):
@@ -206,23 +205,12 @@ def get_handler_for(url, verb):
 
 def url_variables(url, pr):
     """Generate a dictionary exposing the URL components. Names follow urlparse."""
-    result = dict(
-        url=url,
-        scheme=pr.scheme,
-        netloc=pr.netloc,
-        path=pr.path,
-        params=pr.params,
-        query=pr.query,
-        fragment=pr.fragment,
-        username=pr.username,
-        password=pr.password,
-        hostname=pr.hostname,
-        firstdir=maybe(lambda:pr.path.split("/")[1], ""),
-        restdirs=maybe(lambda:"/".join(pr.path.split("/")[2:]), ""),
-        dirname=os.path.dirname(pr.path),
-        filename=os.path.basename(pr.path),
-        port=pr.port
-    )
+    result = dict(pr._asdict(),
+                  url=url,
+                  firstdir=maybe(lambda:pr.path.split("/")[1], ""),
+                  restdirs=maybe(lambda:"/".join(pr.path.split("/")[2:]), ""),
+                  dirname=os.path.dirname(pr.path),
+                  filename=os.path.basename(pr.path))
     if pr.scheme=="file":
         result["abspath"] = os.path.abspath(pr.path)
     return result
@@ -240,7 +228,7 @@ def writable(verb):
     """Does the given verb require a writable file descriptor?"""
     return verb == "write"
 
-def cmd_handler(url, verb, raise_errors=True, stream=None, verbose=False):
+def cmd_handler(url, verb, ignore_errors=False, stream=None, verbose=False):
     """Given a url and verb, find the command handler."""
     handler = get_handler_for(url, verb)
     if handler is None:
@@ -262,7 +250,7 @@ def cmd_handler(url, verb, raise_errors=True, stream=None, verbose=False):
     if isinstance(cmd, str):
         cmd = ["/bin/bash", "-c", cmd]
     assert isinstance(cmd, (list, tuple))
-    return Pipe(cmd, writable(verb), raise_errors=True, stream=stream)
+    return Pipe(cmd, writable(verb), ignore_errors=True, stream=stream)
 
 def objopen(url, verb="read", stream=None):
     """Open a storage object. This always spawns a subprocess and supports all verbs."""
