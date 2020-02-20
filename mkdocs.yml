@@ -2,6 +2,9 @@ site_name: objio
 nav:
     - Home: index.md
     - Examples: examples.md
-    - objio: objio.md
-    - obj: obj.md
+    - Configuration: configuration.md
+    - Development: development.md
+    - Reference:
+      - objio: objio.md
+      - obj: obj.md
 theme: readthedocs
