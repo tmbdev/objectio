@@ -26,7 +26,6 @@ $(VENV)/bin/activate: requirements.txt requirements.dev.txt
 # and execute the tests
 
 push: FORCE
-	make docs
 	git add docs/*.md
 	git push
 
@@ -50,9 +49,6 @@ pypitest:
 
 docs: FORCE
 	./helpers/gendocs
-
-docspush: FORCE
-	make docs
 	git status | awk '/modified:/{if(index($$0, ".md")<=0)exit(1)}'
 	git add docs/*.md
 	git add README.md
