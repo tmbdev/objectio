@@ -115,7 +115,7 @@ Configuration:
 - requirements for virtual environment: requirements.txt
 - requirements for pip install: setup.py
 - requirements for development: requirements.dev.txt
-- .git/hooks for pre-push hook
+- .githooks for pre-push hook (git config core.hooksPath .githook)
 - .github/workflows for workflows
 
 Makefile targets
