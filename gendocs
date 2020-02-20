@@ -6,4 +6,23 @@ jupyter nbconvert --to markdown notebooks/examples.ipynb
 mv notebooks/examples.md docs/examples.md
 pydocmd simple objio.io > docs/io.md
 ./cmd2md obj > docs/obj.md
+
+for command in obj; do 
+    (
+        echo
+        echo "# $command (command)"
+        echo
+        ./$command --help | sed '1,/^Commands:/d' | awk '{print $1}' |
+        while read subcommand; do
+            echo
+            echo "## $command $subcommand (subcommand)"
+            echo
+            echo '```generic'
+            ./$command $subcommand --help
+            echo '```'
+            echo
+        done
+    ) > docs/$command.md
+done
+
 #mkdocs build

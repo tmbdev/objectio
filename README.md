@@ -96,7 +96,7 @@ For development, we're using the following Python tools:
 Custom scripts:
 
 - Automation: Makefile
-- Documentation generation: cmd2md
+- Documentation generation: gendocs
 - Testing on Docker: dockergit dockerpip
 
 Configuration:
