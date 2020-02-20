@@ -1,7 +1,6 @@
 name: TestPip
-on:
-  schedule:
-    - cron: "0 3 * * *"
+on: [push]
+#schedule: - cron: "0 3 * * *"
 jobs:
   testpip:
     runs-on: ubuntu-latest
