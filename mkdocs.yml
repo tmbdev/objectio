@@ -4,7 +4,6 @@ nav:
     - Examples: examples.md
     - Configuration: configuration.md
     - Development: development.md
-    - Reference:
-      - objio: objio.md
-      - obj: obj.md
+    - Pydoc: pydoc.md
+    - Command Line Usage: commands.md
 theme: readthedocs

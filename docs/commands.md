@@ -1,10 +1,25 @@
-
+Usage information for command line programs.
 # obj (command)
 
+```
+Usage: obj [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  auth     Authenticate to the server for the URL.
+  buckets  List all available buckets for the currently authenticated user.
+  cat      Cat the given object to stdout.
+  config   Output the entire config file.
+  handler  Output the handlers for a given URL and verb.
+  list     List the objects in the given bucket or at the given path.
+  put      Upload stdin to the given location.
+```
 
 ## obj auth (subcommand)
 
-```generic
+```
 Usage: obj auth [OPTIONS] URL
 
   Authenticate to the server for the URL.
@@ -17,10 +32,9 @@ Options:
   --help           Show this message and exit.
 ```
 
-
 ## obj buckets (subcommand)
 
-```generic
+```
 Usage: obj buckets [OPTIONS] URL
 
   List all available buckets for the currently authenticated user.
@@ -33,10 +47,9 @@ Options:
   --help           Show this message and exit.
 ```
 
-
 ## obj cat (subcommand)
 
-```generic
+```
 Usage: obj cat [OPTIONS] URL
 
   Cat the given object to stdout.
@@ -49,10 +62,9 @@ Options:
   --help           Show this message and exit.
 ```
 
-
 ## obj config (subcommand)
 
-```generic
+```
 Usage: obj config [OPTIONS]
 
   Output the entire config file.
@@ -61,10 +73,9 @@ Options:
   --help  Show this message and exit.
 ```
 
-
 ## obj handler (subcommand)
 
-```generic
+```
 Usage: obj handler [OPTIONS] URL
 
   Output the handlers for a given URL and verb.
@@ -78,10 +89,9 @@ Options:
   --help       Show this message and exit.
 ```
 
-
 ## obj list (subcommand)
 
-```generic
+```
 Usage: obj list [OPTIONS] URL
 
   List the objects in the given bucket or at the given path.
@@ -93,10 +103,9 @@ Options:
   --help           Show this message and exit.
 ```
 
-
 ## obj put (subcommand)
 
-```generic
+```
 Usage: obj put [OPTIONS] URL
 
   Upload stdin to the given location.
