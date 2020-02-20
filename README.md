@@ -31,10 +31,13 @@ The `objio` library is intended to be just a simple wrapper around
 existing command line programs. You can configure how command line programs
 are invoked with a YAML configuration file. Configurations are a combination
 of the built-in defaults with global and directory-local overrides.
+You can specify a list of ":"-separated YAML files to load from with the
+`OBJIO_PATH` variable. By default, it will look in
 
-- system: /usr/local/etc/objio.yaml (override with`OBJIO_SYSTEM=` environment variable)
-- user: ~/.objio.yaml (override with `OBJIO_USER=` environment variable)
-- local: ./objio.yaml (override with `OBJIO_LOCAL=` environment variable)
+```Bash
+OBJIO_PATH=/usr/local/etc/objio.yaml:~/.objio.yaml:./objio.yaml
+OBJIO_PATH=$OBJIO_PATH:/usr/local/etc/objio.yml:~/.objio.yml:./objio.yml
+```
 
 The configuration file contains command specifications, either as strings
 (passed to Bash for execution) or as lists (executed directly). You can override
@@ -42,7 +45,7 @@ any URL schema, and create new ones for new functionality:
 
 ```YAML
     schemes:
-        http_buffered: 
+        http_buffered:
             read:
                 cmd: "curl --fail -L -s '{url}' --output - | mbuffer"
         random:
