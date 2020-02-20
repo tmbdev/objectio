@@ -16,7 +16,7 @@ scripts = "obj".split()
 
 setuptools.setup(
     name='objio',
-    version='0.1.2',
+    version='0.1.3',
     description="Generic object storage interface and commands.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
@@ -33,5 +33,6 @@ setuptools.setup(
     keywords="object store, client, deep learning",
     packages=["objio"],
     python_requires=">=3.6",
-    scripts=scripts
+    scripts=scripts,
+    install_requires="pyyaml braceexpand simplejson typer".split()
 )
