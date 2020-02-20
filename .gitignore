@@ -9,3 +9,5 @@ OLD
 data
 models
 venv
+build
+dist
