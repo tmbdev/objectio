@@ -1,15 +1,3 @@
-#!/usr/bin/python3
-#
-# Copyright (c) 2017-2019 NVIDIA CORPORATION. All rights reserved.
-# This file is part of webloader (see TBD).
-# See the LICENSE file for licensing terms (BSD-style).
-#
-
-"""Object Store I/O Functions.
-
-This defines two functions (`gopen`, `objopen`) that can access a 
-large variety of object stores using a uniform interface.
-"""
 
 __all__ = "objopen gopen config".split()
 
@@ -55,10 +43,10 @@ schemes:
     buckets:
       cmd: "mount | awk '/^\\\\/dev\\\\/sd/{print $3}'"
       substitute: false
-    auth: 
+    auth:
       message: |
         No authentication for local files.
-        
+
   gs:
     read:
         cmd: ["gsutil", "cat", "{url}"]
@@ -68,7 +56,7 @@ schemes:
         cmd: ["gsutil", "ls"]
     list:
         cmd: ["gsutil", "ls", "{url}"]
-    auth: 
+    auth:
       message: |
         Use "gcloud auth login" to authenticate.
 
@@ -91,6 +79,24 @@ schemes:
 
 with io.StringIO(default) as stream:
     config = yaml.load(stream, Loader=yaml.FullLoader)
+
+def checktype(value, types, msg=""):
+    """Type check value; raise ValueError if fails."""
+    if not isinstance(value, types):
+        raise ValueError(f"ERROR {msg}: {value} should be of type {types}")
+
+
+def checkmember(value, values, msg=""):
+    """Check value for membership; raise ValueError if fails."""
+    if value not in values:
+        raise ValueError(f"ERROR {msg}: {value} should be in {values}")
+
+
+def checkrange(value, lo, hi, msg=""):
+    """Check value for membership; raise ValueError if fails."""
+    if value < lo or value > hi:
+        raise ValueError(f"ERROR {msg}: {value} should be in range {lo} {hi}")
+
 
 def update_yaml_with(target, source):
     """Merge the source YAML tree into the target. Useful for merging config files."""
@@ -115,7 +121,7 @@ for path in objio_path.split(":"):
 if objio_debug:
     yaml.dump(config, sys.stderr)
 
-assert "schemes" in config.keys()
+checkmember("schemes", list(config.keys()), "config file error")
 
 class ObjioExeption(Exception):
     """I/O Exceptions during objio operations."""
@@ -126,7 +132,7 @@ class ObjioExeption(Exception):
 class Pipe(object):
     """A wrapper for the subproces.Pipe class that checks status on read/write."""
     def __init__(self, cmd, writable, ignore_errors=False, stream=None, bufsize=8192, timeout=60.0, **kw):
-        assert isinstance(cmd, list)
+        checktype(cmd, list)
         self.timeout = timeout
         self.args = (cmd, writable)
         self.ignore_errors = ignore_errors
@@ -190,7 +196,7 @@ def maybe(f, default):
 
 def get_handler_for(url, verb):
     """Look for a handler for the url/verb combination in the config file."""
-    assert verb in "read write delete list auth buckets".split(), f"{verb} not one of the accepted modes"
+    checkmember(verb, "read write delete list auth buckets")
     pr = urlparse(url)
     schemes = config.get("schemes")
     scheme = schemes.get(pr.scheme)
@@ -232,7 +238,7 @@ def cmd_handler(url, verb, ignore_errors=False, stream=None, verbose=False):
     """Given a url and verb, find the command handler."""
     handler = get_handler_for(url, verb)
     if handler is None:
-        raise ValueError(f"objio: {url}: no command specified for {pr.scheme}, verb {verb}\n"+
+        raise ValueError(f"objio: {url}: no command specified for verb {verb}\n"+
                          yaml.dump(handler))
     message = handler.get("message")
     if message is not None:
@@ -249,7 +255,7 @@ def cmd_handler(url, verb, ignore_errors=False, stream=None, verbose=False):
         print("#", cmd, file=sys.stderr)
     if isinstance(cmd, str):
         cmd = ["/bin/bash", "-c", cmd]
-    assert isinstance(cmd, (list, tuple))
+    checktype(cmd, (list, tuple))
     return Pipe(cmd, writable(verb), ignore_errors=True, stream=stream)
 
 def objopen(url, verb="read", stream=None):
