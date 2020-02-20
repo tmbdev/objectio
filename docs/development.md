@@ -29,12 +29,14 @@ Configuration:
 
 Makefile targets
 
-- tests: run unit tests
 - venv: setup the virtualenv
+- tests: run unit tests
 - push: push to github
 - dist: make a distribution on PyPI
 - docs: build the docs
-- clean: clean temporary files, build artifacts
+- githubtests: run docker test against github repo
+- pypitests: run docker test against pypi package
+- clean: clean temporary files, artifacts, venv
 - passwd: authenticate to keyring
 
 Most functions will likely move to Github Actions soon.
