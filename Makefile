@@ -21,14 +21,6 @@ $(VENV)/bin/activate: requirements.txt requirements.dev.txt
 	$(PIP) install -r requirements.txt
 	touch $(VENV)/bin/activate
 
-# push a new version to github; commit all changes first or this will fail
-# after a successful push, it will try to clone the repo into a docker container
-# and execute the tests
-
-push: FORCE
-	git add docs/*.md
-	git push
-
 # push a new version to pypi; commit all changes first or this will fail
 # after a successful push, it will try to clone the repo into a docker container
 # and execute the tests
