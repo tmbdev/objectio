@@ -1,3 +1,5 @@
+![Test](https://github.com/tmbdev/objio/workflows/Test/badge.svg)
+
 # The Object IO Library and Command
 
 Object stores (S3, Google, Azure, Minio, Swift, etc.) all have their own
