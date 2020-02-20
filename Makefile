@@ -39,10 +39,10 @@ dist: FORCE
 	twine check dist/*
 	twine upload dist/*
 
-githubtest:
+githubtests:
 	./helpers/dockertest git
 
-pypitest:
+pypitests:
 	./helpers/dockertest pip
 
 # build the documentation
