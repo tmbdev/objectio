@@ -9,7 +9,22 @@ command line interfaces with their own conventions for accessing objects.
 This library and command provides a simple, uniform interface to object
 store facilities, both from the command line and from within Python.
 
-Documentation: [ReadTheDocs](http://objio.readthedocs.io)
+
+# Installation
+
+```Bash
+    $ pip install objio
+```
+
+For the Github version:
+
+```Bash
+    $ pip install git+https://github.com/tmbdev/objio.git
+```
+
+# Documentation
+
+[ReadTheDocs](http://objio.readthedocs.io)
 
 # Command Line Usage
 
