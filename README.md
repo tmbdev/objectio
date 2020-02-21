@@ -57,10 +57,6 @@ file. For example:
                 cmd: ["cat", "/dev/random"]
 ```
 
-# Documentation
-
-You can find documentation at ![Read The Docs](http://objio.readthedocs.io)
-
 # Future Extensions
 
 The intention is to keep this library simple and always allow command line
