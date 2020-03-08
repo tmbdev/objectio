@@ -8,13 +8,13 @@
 import sys
 import setuptools
 
-VERSION = '0.1.9'
+VERSION = '0.1.10'
 
 if sys.version_info < (3, 6):
     sys.exit("Python versions less than 3.6 are not supported")
 
 setuptools.setup(
-    name='objio',
+    name='objectio',  # PyPI package name
     version=VERSION,
     description="Generic object storage interface and commands.",
     long_description=open("README.md").read(),
