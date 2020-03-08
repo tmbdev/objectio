@@ -15,7 +15,7 @@ if "version" in os.environ:
     with open("VERSION", "w") as stream:
         stream.write(VERSION)
 else:
-    VERSION = datetime.datetime.now().strftime("dev%Y%m%d%H%M"))
+    VERSION = datetime.datetime.now().strftime("dev%Y%m%d%H%M")
 
 if sys.version_info < (3, 6):
     sys.exit("Python versions less than 3.6 are not supported")
