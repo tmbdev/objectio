@@ -21,7 +21,7 @@ bump: FORCE
 	git push
 
 release: bump
-	hub release $(cat VERSION)
+	hub release create $$(cat VERSION)
 
 # build the virtual environment for development and testing
 
