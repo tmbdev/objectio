@@ -18,6 +18,7 @@ jobs:
       with:
         password: ${{ secrets.test_pypi_token }}
         repository_url: https://test.pypi.org/legacy/
+      continue-on-error: true
     - name: publish to pypi.org
       if: startsWith(github.even.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master

@@ -20,7 +20,7 @@ bump: FORCE
 	git commit -m 'version bump'
 	git push
 
-release: bump
+release: bump FORCE
 	hub release create $$(cat VERSION)
 
 # build the virtual environment for development and testing
@@ -37,11 +37,11 @@ $(VENV)/bin/activate: requirements.txt requirements.dev.txt
 # after a successful push, it will try to clone the repo into a docker container
 # and execute the tests
 
-dist: FORCE
-	rm -f dist/*
-	$(PYTHON3) setup.py sdist bdist_wheel
-	twine check dist/*
-	twine upload dist/*
+# dist: FORCE
+# 	rm -f dist/*
+# 	$(PYTHON3) setup.py sdist bdist_wheel
+# 	twine check dist/*
+# 	twine upload dist/*
 
 githubtests:
 	./helpers/dockertest git
