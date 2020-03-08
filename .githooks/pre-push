@@ -3,3 +3,4 @@ rm -f objio.yaml objio.yml
 unset OBJIO_PATH
 source venv/bin/activate
 python3 -m pytest
+awk '{print $1+1}' MINOR > TEMP && mv TEMP MINOR
