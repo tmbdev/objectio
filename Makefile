@@ -11,6 +11,15 @@ tests: venv FORCE
 	rm -f objectio.yaml objectio.yml # config files that interfere with tests
 	. ./venv/bin/activate; python3 -m pytest
 
+bump: FORCE
+	cat VERSION
+	awk -F. '{print $$1"."$$2"."$$3+1}' VERSION > VERSION1
+	mv VERSION1 VERSION
+	cat VERSION
+
+release: FORCE
+	hub release $(cat VERSION)
+
 # build the virtual environment for development and testing
 
 venv: $(VENV)/bin/activate
