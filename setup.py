@@ -9,7 +9,7 @@ import sys
 import setuptools
 import datetime
 
-VERSION = '0.1.11' # + '-' + datetime.datetime.now().strftime("%Y%m%d%H%M")
+VERSION = '0.1.12' + '-' + datetime.datetime.now().strftime("%Y%m%d%H%M")
 
 if sys.version_info < (3, 6):
     sys.exit("Python versions less than 3.6 are not supported")
