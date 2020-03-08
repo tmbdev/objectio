@@ -7,7 +7,7 @@
 from __future__ import unicode_literals
 
 import sys
-import objio
+import objectio
 import yaml
 import io
 
@@ -26,7 +26,7 @@ write:
 def test_objopen_read():
     for case in testcases["read"]:
         print("# testing", case["url"], file=sys.stderr)
-        with objio.objopen(case["url"], "read") as stream:
+        with objectio.objopen(case["url"], "read") as stream:
             text = stream.read().decode("utf-8")
         assert case["contains"] in text
 
@@ -34,7 +34,7 @@ def test_objopen_read():
 def test_objopen_list():
     for case in testcases["list"]:
         print("# testing", case["url"], file=sys.stderr)
-        with objio.objopen(case["url"], "list") as stream:
+        with objectio.objopen(case["url"], "list") as stream:
             text = stream.read().decode("utf-8")
         assert case["contains"] in text
 
@@ -44,9 +44,9 @@ def test_objopen_write():
     for case in testcases["write"]:
         fname = case["bucket"] + "/test.txt"
         print("# testing", fname, file=sys.stderr)
-        with objio.objopen(fname, "write") as stream:
+        with objectio.objopen(fname, "write") as stream:
             stream.write(original.encode("utf-8"))
-        with objio.objopen(fname, "read") as stream:
+        with objectio.objopen(fname, "read") as stream:
             text = stream.read().decode("utf-8")
         assert text == original
 
@@ -54,8 +54,8 @@ def test_objopen_write():
 def test_gopen_file(tmp_path):
     fname = str(tmp_path / "test.txt")
     original = "hello world"
-    with objio.gopen(fname, "w") as stream:
+    with objectio.gopen(fname, "w") as stream:
         stream.write(original)
-    with objio.gopen(fname, "r") as stream:
+    with objectio.gopen(fname, "r") as stream:
         text = stream.read()
     assert text == original

@@ -19,7 +19,7 @@ setuptools.setup(
     description="Generic object storage interface and commands.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="http://github.com/tmbdev/objio",
+    url="http://github.com/tmbdev/objectio",
     author="Thomas Breuel",
     author_email="tmbdev+removeme@gmail.com",
     license="MIT",
@@ -30,7 +30,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7"
     ],
     keywords="object store, client, deep learning",
-    packages=["objio"],
+    packages=["objectio"],
     python_requires=">=3.6",
     scripts=["obj"],
     install_requires="pyyaml braceexpand simplejson typer".split()

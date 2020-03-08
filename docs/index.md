@@ -1,4 +1,4 @@
-![Test](https://github.com/tmbdev/objio/workflows/Test/badge.svg)
+![Test](https://github.com/tmbdev/objectio/workflows/Test/badge.svg)
 
 # The Object IO Library and Command
 
@@ -23,17 +23,17 @@ Accessing blobs from Python is easy: the two functions you need to know
 are:
 
 - `gopen`: opens a stream with standard Python filemodes; shortcuts for files
-- `objopen`: opens a stream with `objio` verbs; uses `file:` rule for files
+- `objopen`: opens a stream with `objectio` verbs; uses `file:` rule for files
 
 ```Python
-    import objio
+    import objectio
 
-    with objio.gopen("gs://bucket/blob", "rb") as stream:
+    with objectio.gopen("gs://bucket/blob", "rb") as stream:
         contents = stream.read()
 
-    with objio.openobj("gs://bucket/blob", "read") as stream:
+    with objectio.openobj("gs://bucket/blob", "read") as stream:
         contents = stream.read()
 
-    with objio.openobj("gs://bucket/", "list") as stream:
+    with objectio.openobj("gs://bucket/", "list") as stream:
         files = stream.read().split("\n")
 ```

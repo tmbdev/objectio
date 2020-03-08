@@ -1,4 +1,4 @@
-site_name: objio
+site_name: objectio
 nav:
     - Home: index.md
     - Examples: examples.md

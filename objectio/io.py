@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # Copyright (c) 2017-2019 NVIDIA CORPORATION. All rights reserved.
-# This file is part of the objio library.
+# This file is part of the objectio library.
 # See the LICENSE file for licensing terms (BSD-style).
 #
 
@@ -17,16 +17,16 @@ from urllib.parse import urlparse
 
 from .checks import checkmember, checktype
 
-ENV_PREFIX = "OBJIO_"
+ENV_PREFIX = "objectio_"
 
-OBJIO_DEBUG = int(os.environ.get(ENV_PREFIX+"DEBUG", "0"))
+objectio_DEBUG = int(os.environ.get(ENV_PREFIX+"DEBUG", "0"))
 
-OBJIO_PATH = "/usr/local/etc/objio.yaml:~/.objio.yaml:./objio.yaml"
-OBJIO_PATH += ":" + OBJIO_PATH.replace("yaml", "yml")
-OBJIO_PATH = os.environ.get(ENV_PREFIX+"PATH", OBJIO_PATH)
+objectio_PATH = "/usr/local/etc/objectio.yaml:~/.objectio.yaml:./objectio.yaml"
+objectio_PATH += ":" + objectio_PATH.replace("yaml", "yml")
+objectio_PATH = os.environ.get(ENV_PREFIX+"PATH", objectio_PATH)
 
-if OBJIO_DEBUG:
-    print(f"# objio path: {OBJIO_PATH}", file=sys.stderr)
+if objectio_DEBUG:
+    print(f"# objectio path: {objectio_PATH}", file=sys.stderr)
 
 # FIXME: move defaults into a separate, installable file
 
@@ -98,23 +98,23 @@ def update_yaml_with(target, source):
 # load YAML config files
 
 
-for path in OBJIO_PATH.split(":"):
+for path in objectio_PATH.split(":"):
     if os.path.exists(path):
-        if OBJIO_DEBUG:
-            print(f"objio updating config with {path}", file=sys.stderr)
+        if objectio_DEBUG:
+            print(f"objectio updating config with {path}", file=sys.stderr)
         with open(path) as stream:
             updates = yaml.load(stream, Loader=yaml.FullLoader)
             config = update_yaml_with(config, updates)
 
-if OBJIO_DEBUG:
+if objectio_DEBUG:
     yaml.dump(config, sys.stderr)
 
 
 checkmember("schemes", list(config.keys()), "config file error")
 
 
-class ObjioExeption(Exception):
-    """I/O Exceptions during objio operations."""
+class objectioExeption(Exception):
+    """I/O Exceptions during objectio operations."""
     def __init__(self, info):
         super().__init__()
         self.info = info
@@ -137,7 +137,7 @@ class Pipe:
         if not stream:
             self.stream = self.proc.stdin if writable else self.proc.stdout
             if self.stream is None:
-                raise ObjioExeption(f"{cmd}: no stream (open)")
+                raise objectioExeption(f"{cmd}: no stream (open)")
         self.status = None
 
     def check_status(self):
@@ -148,7 +148,7 @@ class Pipe:
         if self.status is not None:
             self.status = self.proc.wait()
             if self.status != 0 and not self.ignore_errors:
-                raise ObjioExeption(f"{self.args}: exit {self.status} (write)")
+                raise objectioExeption(f"{self.args}: exit {self.status} (write)")
 
     def write(self, *args, **kw):
         result = self.stream.write(*args, **kw)
@@ -203,11 +203,11 @@ def get_handler_for(url, verb):
     schemes = config.get("schemes")
     scheme = schemes.get(pr.scheme)
     if scheme is None:
-        raise ValueError(f"objio: {url}: no handler found for {pr.scheme}" +
+        raise ValueError(f"objectio: {url}: no handler found for {pr.scheme}" +
                          " (known: " + " ".join(schemes.keys())+")")
     handler = scheme.get(verb)
     if handler is None:
-        raise ValueError(f"objio: {url}: no handler found for {pr.scheme}, verb {verb}" +
+        raise ValueError(f"objectio: {url}: no handler found for {pr.scheme}, verb {verb}" +
                          yaml.dump(handler))
     return handler
 
@@ -244,7 +244,7 @@ def cmd_handler(url, verb, ignore_errors=False, stream=None, verbose=False):
     """Given a url and verb, find the command handler."""
     handler = get_handler_for(url, verb)
     if handler is None:
-        raise ValueError(f"objio: {url}: no command specified for verb {verb}\n" +
+        raise ValueError(f"objectio: {url}: no command specified for verb {verb}\n" +
                          yaml.dump(handler))
     message = handler.get("message")
     if message is not None:
@@ -257,7 +257,7 @@ def cmd_handler(url, verb, ignore_errors=False, stream=None, verbose=False):
     pr = urlparse(url)
     if handler.get("substitute", True):
         cmd = substitute_variables(cmd, url_variables(url, pr))
-    if OBJIO_DEBUG or verbose:
+    if objectio_DEBUG or verbose:
         print("#", cmd, file=sys.stderr)
     if isinstance(cmd, str):
         cmd = ["/bin/bash", "-c", cmd]

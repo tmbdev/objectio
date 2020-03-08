@@ -5,23 +5,23 @@
 %cd ..
 ```
 
-    /home/tmb/exp/objio
+    /home/tmb/exp/objectio
 
 
 
 ```python
 import sys
-import objio
+import objectio
 ```
 
 ## Python API
 
-Let's read a file from Google cloud storage using `objio.gopen` (generic open):
+Let's read a file from Google cloud storage using `objectio.gopen` (generic open):
 
 
 ```python
 url = "gs://lpr-openimages/openimages-shard.ipynb"
-with objio.gopen(url, "r") as stream:
+with objectio.gopen(url, "r") as stream:
     print(stream.read(100))
 ```
 
@@ -33,7 +33,7 @@ The same code works for local files:
 
 ```python
 url = "file:/usr/share/dict/words"
-with objio.gopen(url, "r") as stream:
+with objectio.gopen(url, "r") as stream:
     print(stream.read(20))
 ```
 
@@ -50,7 +50,7 @@ When no URL scheme is given, `gopen` just defaults to regular `open`:
 
 ```python
 url = "/usr/share/dict/words"
-with objio.gopen(url, "r") as stream:
+with objectio.gopen(url, "r") as stream:
     print(stream.read(20))
 ```
 
@@ -62,14 +62,14 @@ with objio.gopen(url, "r") as stream:
     
 
 
-There is an alternative library interface called `objio.objopen` that supports additional "verbs". The "read" and "write" verbs correspond to "r" and "w", and "list" generates a newline separated listing of absolute URLs of all objects in a bucket.
+There is an alternative library interface called `objectio.objopen` that supports additional "verbs". The "read" and "write" verbs correspond to "r" and "w", and "list" generates a newline separated listing of absolute URLs of all objects in a bucket.
 
-In addition, `objopen` always uses a subprocess for I/O and always returns an `objio.Pipe` object that supports the `wait(timeout=sec)` method to wait for a subprocess to finish.
+In addition, `objopen` always uses a subprocess for I/O and always returns an `objectio.Pipe` object that supports the `wait(timeout=sec)` method to wait for a subprocess to finish.
 
 
 ```python
 url = "file:/usr/share/dict/words"
-stream = objio.objopen(url, "read")
+stream = objectio.objopen(url, "read")
 data = stream.read()
 stream.close(timeout=10.0)
 print(data[:10])
@@ -81,7 +81,7 @@ print(data[:10])
 
 ```python
 url = "file:/usr/share/dict"
-stream = objio.objopen(url, "list")
+stream = objectio.objopen(url, "list")
 data = stream.read()
 stream.close(timeout=10.0)
 print(data[:50])
@@ -153,14 +153,14 @@ Let's say you want to change this default to using `cat`. You can define the han
 
 
 ```python
-%%writefile objio.yml
+%%writefile objectio.yml
 schemes:
   file:
     read:
       cmd: ["cat", "{path}"]
 ```
 
-    Overwriting objio.yml
+    Overwriting objectio.yml
 
 
 

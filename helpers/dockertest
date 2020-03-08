@@ -7,7 +7,7 @@ set -e
 
 # build the base container
 
-docker build -t objiotest-base - <<EOF
+docker build -t objectiotest-base - <<EOF
 FROM ubuntu:19.10
 ENV LC_ALL=C
 ENV DEBIAN_FRONTEND=noninteractive
@@ -25,11 +25,11 @@ git)
 
 # run the test as a second stage build without caching
 
-docker build -t objiotest --no-cache - <<EOF
-FROM objiotest-base
+docker build -t objectiotest --no-cache - <<EOF
+FROM objectiotest-base
 ENV SHELL=/bin/bash
-RUN git clone https://git@github.com/tmbdev/objio.git /tmp/objio
-WORKDIR /tmp/objio
+RUN git clone https://git@github.com/tmbdev/objectio.git /tmp/objectio
+WORKDIR /tmp/objectio
 RUN python3 -m venv venv
 RUN . venv/bin/activate; pip install --no-cache-dir pytest
 RUN . venv/bin/activate; pip install --no-cache-dir -r requirements.txt
@@ -40,23 +40,23 @@ EOF
 
 pip)
 
-docker build -t objiotest --no-cache - <<EOF
-FROM objiotest-base
+docker build -t objectiotest --no-cache - <<EOF
+FROM objectiotest-base
 ENV SHELL=/bin/bash
 
-RUN pip3 install objio
+RUN pip3 install objectio
 RUN pip3 install pytest
 
 # we clone this just to get the tests
 
-RUN git clone https://git@github.com/tmbdev/objio.git /tmp/objio
-WORKDIR /tmp/objio
+RUN git clone https://git@github.com/tmbdev/objectio.git /tmp/objectio
+WORKDIR /tmp/objectio
 
 # we need to run the tests in the current directory
 # but we want to make sure that we are using the globally
 # installed libraries, so we move the subdirectory out of the way
 
-RUN mv objio use-installed-objio
+RUN mv objectio use-installed-objectio
 
 # note that for commands, this will test ./command, not /usr/local/bin/command
 

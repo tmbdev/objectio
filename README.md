@@ -1,6 +1,6 @@
-[![Test](https://github.com/tmbdev/objio/workflows/Test/badge.svg)](http://github.com/tmbdev/objio/actions)
-[![TestPip](https://github.com/tmbdev/objio/workflows/TestPip/badge.svg)](http://github.com/tmbdev/objio/actions)
-[![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/tmbdev/objio/?ref=repository-badge)
+[![Test](https://github.com/tmbdev/objectio/workflows/Test/badge.svg)](http://github.com/tmbdev/objectio/actions)
+[![TestPip](https://github.com/tmbdev/objectio/workflows/TestPip/badge.svg)](http://github.com/tmbdev/objectio/actions)
+[![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/tmbdev/objectio/?ref=repository-badge)
 
 # The Object IO Library and Command
 
@@ -13,18 +13,18 @@ store facilities, both from the command line and from within Python.
 # Installation
 
 ```Bash
-    $ pip install objio
+    $ pip install objectio
 ```
 
 For the Github version:
 
 ```Bash
-    $ pip install git+https://github.com/tmbdev/objio.git
+    $ pip install git+https://github.com/tmbdev/objectio.git
 ```
 
 # Documentation
 
-[ReadTheDocs](http://objio.readthedocs.io)
+[ReadTheDocs](http://objectio.readthedocs.io)
 
 # Command Line Usage
 
@@ -39,15 +39,15 @@ For the Github version:
 # Python Usage
 
 ```Python
-    import objio
+    import objectio
 
-    with objio.gopen("gs://bucket/blob", "rb") as stream:
+    with objectio.gopen("gs://bucket/blob", "rb") as stream:
         contents = stream.read()
 ```
 
 # New Protocols
 
-You can define new schemes by creating a `./ojbio.yaml` or `~/.objio.yaml`
+You can define new schemes by creating a `./objectio.yaml` or `~/.objectio.yaml`
 file. For example:
 
 ```YAML
