@@ -10,7 +10,12 @@ import sys
 import setuptools
 import datetime
 
-VERSION = os.environ.get("version", datetime.datetime.now().strftime("t-%Y%m%d%H%M"))
+if "version" in os.environ:
+    VERSION = os.environ.get("version")
+    with open("VERSION", "w") as stream:
+        stream.write(VERSION)
+else:
+    VERSION = datetime.datetime.now().strftime("dev%Y%m%d%H%M"))
 
 if sys.version_info < (3, 6):
     sys.exit("Python versions less than 3.6 are not supported")
