@@ -1,11 +1,11 @@
 name: publish on pypi
-on: push
+on: [push]
 jobs:
-  build-and-publish:
+  publish:
     name: build-and-publish
     runs-on: ubuntu-18.04
     steps:
-    - usues: actions/checkout@master
+    - uses: actions/checkout@master
     - uses: actions/setup-python@v1
       with:
         python-version: 3.7
