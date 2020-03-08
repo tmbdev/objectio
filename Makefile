@@ -16,8 +16,11 @@ bump: FORCE
 	awk -F. '{print $$1"."$$2"."$$3+1}' VERSION > VERSION1
 	mv VERSION1 VERSION
 	cat VERSION
+	git add VERSION
+	git commit -m 'version bump'
+	git push
 
-release: FORCE
+release: bump
 	hub release $(cat VERSION)
 
 # build the virtual environment for development and testing
