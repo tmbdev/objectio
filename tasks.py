@@ -16,6 +16,8 @@ commands = "obj".split()
 
 @task
 def virtualenv(c):
+    "Build the virtualenv."
+    c.run(f"git config core.hooksPath .githooks")
     c.run(f"test -d {VENV} || python3 -m venv {VENV}")
     c.run(f"{PIP} install -r requirements.dev.txt")
     c.run(f"{PIP} install -r requirements.txt")
@@ -23,12 +25,13 @@ def virtualenv(c):
 
 @task(virtualenv)
 def test(c):
-    c.run(f"git config core.hooksPath .githooks")
+    "Run the tests."
     c.run(f"{PYTHON3} -m pytest")
 
 
 @task
 def newversion(c):
+    "Increment the version number."
     text = open("setup.py").read()
     version = re.search('version *= *"([0-9.]+)"', text).group(1)
     print("old version", version)
@@ -52,6 +55,7 @@ def newversion(c):
 
 @task
 def release(c):
+    "Tag the current version as a release on Github."
     version = open("VERSION").read().strip()
     c.run(f"hub release create {version}")
 
@@ -74,7 +78,8 @@ command_template = """
 
 
 @task
-def pydoc(c):
+def gendocs(c):
+    "Generate docs."
     for module in "objectio objectio.io".split():
         with os.popen("{PYTHON3} -m pydoc {module}") as stream:
             text = stream.read()
@@ -87,8 +92,9 @@ def pydoc(c):
             stream.write(command_template.format(text=text, command=command))
 
 
-@task
-def docs(c):
+@task(gendocs)
+def pubdocs(c):
+    "Generate and publish docs."
     modified = os.popen("git status").readlines()
     for line in modified:
         if "modified:" in line and ".md" not in line:
@@ -100,18 +106,21 @@ def docs(c):
 
 @task
 def clean(c):
+    "Remove temporary files."
     c.run(f"rm -rf {TEMP}")
     c.run(f"rm -rf build dist")
 
 
 @task
 def cleanall(c):
+    "Remove temporary files and virtualenv."
     c.run(f"rm -rf {TEMP}")
     c.run(f"rm -rf venv build dist")
 
 
 @task(test)
 def twine_pypi_release(c):
+    "Manually push to PyPI via Twine."
     c.run("rm -f dist/*")
     c.run("$(PYTHON3) setup.py sdist bdist_wheel")
     c.run("twine check dist/*")
@@ -135,6 +144,7 @@ EOF
 
 @task
 def dockerbase(c):
+    "Build a base container."
     c.run(build_base_container)
 
 
@@ -154,6 +164,7 @@ EOF
 
 @task(dockerbase)
 def githubtest(c):
+    "Test the latest version on Github in a docker container."
     c.run(run_github_test)
 
 
@@ -184,4 +195,5 @@ EOF
 
 @task
 def pypitest(c):
+    "Test the latest version on PyPI in a docker container."
     c.run(run_pypi_test)
