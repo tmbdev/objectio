@@ -32,6 +32,7 @@ def test(c):
 @task
 def newversion(c):
     "Increment the version number."
+    assert "working tree clean" in c.run("git status").stdout
     text = open("setup.py").read()
     version = re.search('version *= *"([0-9.]+)"', text).group(1)
     print("old version", version)
@@ -56,6 +57,7 @@ def newversion(c):
 @task
 def release(c):
     "Tag the current version as a release on Github."
+    assert "working tree clean" in c.run("git status").stdout
     version = open("VERSION").read().strip()
     c.run(f"hub release create {version}")
 
