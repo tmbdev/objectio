@@ -17,7 +17,7 @@ if sys.version_info < (3, 6):
 
 setuptools.setup(
     name='objectio',  # PyPI package name
-    version="0.2.25",
+    version="0.2.26",
     description="Generic object storage interface and commands.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
