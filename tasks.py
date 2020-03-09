@@ -199,3 +199,22 @@ EOF
 def pypitest(c):
     "Test the latest version on PyPI in a docker container."
     c.run(run_pypi_test)
+
+
+required_files = f"""
+.github/workflows/pypi.yml
+.github/workflows/test.yml
+.github/workflows/testpip.yml
+.githooks/pre-push
+.gitignore
+""".strip().split()
+
+
+@task
+def checkall(c):
+    for (root, dirs, files) in os.walk(f"./{PACKAGE}"):
+        if "/__" in root: continue
+        assert "__init__.py" in files, (root, dirs, files)
+    assert os.path.isdir("./docs")
+    for fname in required_files:
+        assert os.path.exists(fname), fname
