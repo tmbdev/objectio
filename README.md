@@ -1,5 +1,4 @@
 [![Test](https://github.com/tmbdev/objectio/workflows/Test/badge.svg)](http://github.com/tmbdev/objectio/actions)
-[![TestPip](https://github.com/tmbdev/objectio/workflows/TestPip/badge.svg)](http://github.com/tmbdev/objectio/actions)
 [![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/tmbdev/objectio/?ref=repository-badge)
 
 # The Object IO Library and Command
