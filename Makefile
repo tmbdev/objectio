@@ -25,16 +25,14 @@ $(VENV)/bin/activate: requirements.txt requirements.dev.txt
 	$(PIP) install -r requirements.txt
 	touch $(VENV)/bin/activate
 
-bumpversion: FORCE
-	cat VERSION
-	awk -F. '{print $$1"."$$2"."$$3+1}' VERSION > VERSION1
-	mv VERSION1 VERSION
-	cat VERSION
-	git add VERSION
-	git commit -m 'version bump'
+version: tests FORCE
+	. $(VENV)/bin/activate; python3 helpers/incrementversion.py
+	grep 'version *=' setup.py
+	git add VERSION setup.py
+	git commit -m 'incremented version'
 	git push
 
-release: bump FORCE
+release: version FORCE
 	hub release create $$(cat VERSION)
 
 # build the virtual environment for development and testing
