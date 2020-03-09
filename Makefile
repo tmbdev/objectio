@@ -4,17 +4,16 @@ VENV=venv
 PYTHON3=$(VENV)/bin/python3
 PIPOPT=--no-cache-dir
 PIP=$(VENV)/bin/pip $(PIPOPT)
+TEMP=objectio.yaml objectio.yml
 
-# run the unit tests in a virtual environment
-
-tests: venv FORCE
-	rm -f objectio.yaml objectio.yml # config files that interfere with tests
+test: venv FORCE
+	rm -f $(TEMP)
 	. ./venv/bin/activate; python3 -m pytest
 
-githubtests:
+containertest:
 	./helpers/dockertest git
 
-pypitests:
+pypitest:
 	./helpers/dockertest pip
 
 venv: $(VENV)/bin/activate
@@ -25,7 +24,7 @@ $(VENV)/bin/activate: requirements.txt requirements.dev.txt
 	$(PIP) install -r requirements.txt
 	touch $(VENV)/bin/activate
 
-version: tests FORCE
+version: test FORCE
 	. $(VENV)/bin/activate; python3 helpers/incrementversion.py
 	grep 'version *=' setup.py
 	git add VERSION setup.py
@@ -52,20 +51,16 @@ gitconfig: FORCE
 	git config core.hooksPath .githooks
 
 clean: FORCE
+	rm -rf $(TEMP)
 	rm -rf venv build dist
-	rm -f objectio.yaml objectio.yml # config files that interfere with tests
 
 passwd: FORCE
 	$(PYTHON3) -m keyring set https://upload.pypi.org/legacy/ tmbdev
 
-# push a new version to pypi; commit all changes first or this will fail
-# after a successful push, it will try to clone the repo into a docker container
-# and execute the tests
-
-# dist: FORCE
-# 	rm -f dist/*
-# 	$(PYTHON3) setup.py sdist bdist_wheel
-# 	twine check dist/*
-# 	twine upload dist/*
+manually_force_dist: test FORCE
+	rm -f dist/*
+	$(PYTHON3) setup.py sdist bdist_wheel
+	twine check dist/*
+	twine upload dist/*
 
 FORCE:
