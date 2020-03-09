@@ -6,6 +6,8 @@ import tempfile
 import glob
 import shutil
 
+
+ACTIVATE = ". ./venv/bin/activate;"
 PACKAGE = "objectio"
 VENV = "venv"
 PYTHON3 = f"{VENV}/bin/python3"
@@ -22,14 +24,14 @@ def virtualenv(c):
     "Build the virtualenv."
     c.run(f"git config core.hooksPath .githooks")
     c.run(f"test -d {VENV} || python3 -m venv {VENV}")
-    c.run(f"{PIP} install -r requirements.dev.txt")
-    c.run(f"{PIP} install -r requirements.txt")
+    c.run(f"{ACTIVATE}{PIP} install -r requirements.dev.txt")
+    c.run(f"{ACTIVATE}{PIP} install -r requirements.txt")
 
 
 @task
 def test(c):
     "Run the tests."
-    c.run(f"{PYTHON3} -m pytest")
+    c.run(f"{ACTIVATE}{PYTHON3} -m pytest")
 
 
 @task
@@ -89,14 +91,14 @@ def gendocs(c):
     for fname in glob.glob("objectio/*.py"):
         module, ext = os.path.splitext(fname)
         module = re.sub("/", ".", module)
-        with os.popen(f"{PYTHON3} -m pydoc {module}") as stream:
+        with os.popen(f"{ACTIVATE}{PYTHON3} -m pydoc {module}") as stream:
             text = stream.read()
         document += pydoc_template.format(text=text, module=module)
     with open("docs/pydoc.md", "w") as stream:
         stream.write(document)
     document = ""
     for command in commands:
-        with os.popen(f"{command} --help ") as stream:
+        with os.popen(f"{ACTIVATE}{PYTHON3} {command} --help ") as stream:
             text = stream.read()
         text = re.sub("```", "", text)
         document = command_template.format(text=text, command=command)
