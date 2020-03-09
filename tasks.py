@@ -26,7 +26,7 @@ def virtualenv(c):
     c.run(f"{PIP} install -r requirements.txt")
 
 
-@task(virtualenv)
+@task
 def test(c):
     "Run the tests."
     c.run(f"{PYTHON3} -m pytest")
@@ -204,12 +204,14 @@ def dockerbase(c):
 @task(dockerbase)
 def githubtest(c):
     "Test the latest version on Github in a docker container."
+    assert "working tree clean" in c.run("git status").stdout
     docker_build(c, github_test, nocache=True)
 
 
-@task
+@task(dockerbase)
 def pypitest(c):
     "Test the latest version on PyPI in a docker container."
+    assert "working tree clean" in c.run("git status").stdout
     docker_build(c, pypi_test, nocache=True)
 
 
