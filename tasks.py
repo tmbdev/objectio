@@ -2,6 +2,9 @@ from invoke import task
 import os
 import re
 import sys
+import tempfile
+import glob
+import shutil
 
 PACKAGE = "objectio"
 VENV = "venv"
@@ -59,7 +62,7 @@ def release(c):
     "Tag the current version as a release on Github."
     assert "working tree clean" in c.run("git status").stdout
     version = open("VERSION").read().strip()
-    c.run(f"hub release create {version}")
+    os.system(f"hub release create {version}")
 
 
 pydoc_template = """
@@ -79,19 +82,26 @@ command_template = """
 """
 
 
-@task
+@task(virtualenv)
 def gendocs(c):
     "Generate docs."
-    for module in "objectio objectio.io".split():
-        with os.popen("{PYTHON3} -m pydoc {module}") as stream:
+    document = ""
+    for fname in glob.glob("objectio/*.py"):
+        module, ext = os.path.splitext(fname)
+        module = re.sub("/", ".", module)
+        with os.popen(f"{PYTHON3} -m pydoc {module}") as stream:
             text = stream.read()
-        with os.popen("docs/{module}.md", "w") as stream:
-            stream.write(pydoc_template.format(text=text, module=module))
+        document += pydoc_template.format(text=text, module=module)
+    with open("docs/pydoc.md", "w") as stream:
+        stream.write(document)
+    document = ""
     for command in commands:
-        with os.popen("{command} --help ") as stream:
+        with os.popen(f"{command} --help ") as stream:
             text = stream.read()
-        with os.popen("docs/{command}.md", "w") as stream:
-            stream.write(command_template.format(text=text, command=command))
+        text = re.sub("```", "", text)
+        document = command_template.format(text=text, command=command)
+    with open("docs/commands.md", "w") as stream:
+        stream.write(document)
 
 
 @task(gendocs)
@@ -129,8 +139,7 @@ def twine_pypi_release(c):
     c.run("twine upload dist/*")
 
 
-build_base_container = f"""
-docker build -t {DOCKER}-base - <<EOF
+base_container = f"""
 FROM ubuntu:19.10
 ENV LC_ALL=C
 ENV DEBIAN_FRONTEND=noninteractive
@@ -140,18 +149,10 @@ RUN apt-get install -qqy python3
 RUN apt-get install -qqy python3-pip
 RUN apt-get install -qqy python3-venv
 RUN apt-get install -qqy curl
-EOF
 """
 
 
-@task
-def dockerbase(c):
-    "Build a base container."
-    c.run(build_base_container)
-
-
-run_github_test = f"""
-docker build -t {DOCKER}-github --no-cache - <<EOF
+github_test = f"""
 FROM objectiotest-base
 ENV SHELL=/bin/bash
 RUN git clone https://git@github.com/tmbdev/objectio.git /tmp/objectio
@@ -160,45 +161,56 @@ RUN python3 -m venv venv
 RUN . venv/bin/activate; pip install --no-cache-dir pytest
 RUN . venv/bin/activate; pip install --no-cache-dir -r requirements.txt
 RUN . venv/bin/activate; python3 -m pytest
-EOF
 """
+
+
+pypi_test = f"""
+FROM objectiotest-base
+ENV SHELL=/bin/bash
+RUN pip3 install objectio
+RUN pip3 install pytest
+# we clone this just to get the tests
+RUN git clone https://git@github.com/tmbdev/objectio.git /tmp/objectio
+WORKDIR /tmp/objectio
+# we need to run the tests in the current directory
+# but we want to make sure that we are using the globally
+# installed libraries, so we move the subdirectory out of the way
+RUN mv objectio use-installed-objectio
+# note that for commands, this will test ./command, not /usr/local/bin/command
+RUN python3 -m pytest
+"""
+
+
+def docker_build(c, instructions, files=[], nocache=False):
+    with tempfile.TemporaryDirectory() as dir:
+        with open(dir + "/Dockerfile", "w") as stream:
+            stream.write(instructions)
+        for fname in files:
+            shutil.copy(fname, dir + "/.")
+        flags = "--no-cache" if nocache else ""
+        c.run(f"cd {dir} && docker build {flags} .")
+
+
+def here(s):
+    return f"<<EOF\n{s}\nEOF\n"
+
+
+@task
+def dockerbase(c):
+    "Build a base container."
+    docker_build(c, base_container)
 
 
 @task(dockerbase)
 def githubtest(c):
     "Test the latest version on Github in a docker container."
-    c.run(run_github_test)
-
-
-run_pypi_test = f"""
-docker build -t objectiotest --no-cache - <<EOF
-FROM objectiotest-base
-ENV SHELL=/bin/bash
-RUN pip3 install objectio
-RUN pip3 install pytest
-
-# we clone this just to get the tests
-
-RUN git clone https://git@github.com/tmbdev/objectio.git /tmp/objectio
-WORKDIR /tmp/objectio
-
-# we need to run the tests in the current directory
-# but we want to make sure that we are using the globally
-# installed libraries, so we move the subdirectory out of the way
-
-RUN mv objectio use-installed-objectio
-
-# note that for commands, this will test ./command, not /usr/local/bin/command
-
-RUN python3 -m pytest
-EOF
-"""
+    docker_build(c, github_test, nocache=True)
 
 
 @task
 def pypitest(c):
     "Test the latest version on PyPI in a docker container."
-    c.run(run_pypi_test)
+    docker_build(c, pypi_test, nocache=True)
 
 
 required_files = f"""
@@ -212,8 +224,10 @@ required_files = f"""
 
 @task
 def checkall(c):
+    "Check for existence of required files."
     for (root, dirs, files) in os.walk(f"./{PACKAGE}"):
-        if "/__" in root: continue
+        if "/__" in root:
+            continue
         assert "__init__.py" in files, (root, dirs, files)
     assert os.path.isdir("./docs")
     for fname in required_files:
